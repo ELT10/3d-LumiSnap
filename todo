@@ -1,0 +1,143 @@
+Frontend Todo List
+1. Project Setup (Frontend)
+[x] Create a new web project repository
+[x] Initialize package.json and install core frontend dependencies
+[x] Set up frontend project structure (components, assets, services)
+[x] Configure build tools (Webpack/Vite) with WebGL support
+[x] Create initial HTML/CSS scaffolding
+[x] Set up version control with initial commit
+2. Basic 3D Scene Setup
+[x] Integrate Three.js/Babylon.js into the project
+[x] Install via npm
+[x] Create a basic renderer setup
+[x] Set up camera and controls
+[x] Create a simple scene class with basic lighting
+[x] Implement orbit controls for camera movement
+[x] Add ambient lighting
+[x] Set up a skybox or environment map
+[x] Implement responsive canvas sizing
+[x] Add stats monitor for performance tracking
+[x] Test basic scene with primitive shapes
+3. Building Model Integration
+[x] Determine optimal 3D model format (glTF recommended)
+[x] Create model loading utility (simplified)
+[ ] Implement progress tracking for load events
+[x] Handle model scaling and positioning
+[x] Implement error handling for failed loads
+[ ] Add material assignment functionality
+[ ] Support PBR materials
+[ ] Handle texture loading and assignment
+[ ] Optimize the model for web viewing
+[ ] Implement level of detail (LOD) system
+[ ] Set up occlusion culling
+[ ] Add scene navigation helpers (floor plans, section views)
+4. IES Profile Implementation
+[x] Create client-side IES file parser
+[x] Parse photometric data from IES files
+[x] Extract relevant distribution information
+[x] Store parsed data in usable format
+[x] Implement IES-based light sources
+[x] Create custom light shader that uses IES data
+[x] Handle different types of fixtures
+[x] Support intensity and color temperature adjustments
+[x] Build a local cataloging system for multiple IES profiles
+[x] Create local storage for available fixtures
+[x] Add fixture metadata (manufacturer, model, specs)
+[ ] Test light accuracy against reference images
+5. Drag and Drop Interface
+[x] Create fixture library UI panel
+[x] Display available fixtures with thumbnails
+[x] Add search/filter functionality
+[x] Group fixtures by categories
+[x] Implement drag and drop mechanics
+[x] Handle mouse/touch events for dragging
+[x] Implement fixture placement on surfaces
+[ ] Add snapping to architectural elements
+[x] Create fixture manipulation controls
+[x] Rotation controls
+[ ] Scale controls (if needed)
+[x] Height/position adjustment
+[ ] Add undo/redo functionality
+[x] Implement fixture property editor
+[x] Adjust brightness
+[x] Change color temperature
+[ ] Modify beam angle (if applicable)
+6. Realistic Lighting Simulation
+[x] Implement physically based rendering pipeline
+[x] Set up PBR materials across the scene
+[ ] Configure reflection and refraction
+[x] Add realistic shadows
+[x] Implement shadow mapping
+[x] Add soft shadows
+[ ] Optimize shadow resolution vs. performance
+[ ] Implement client-side global illumination approximation
+[ ] Add light bouncing effects
+[ ] Implement ambient occlusion
+[x] Set up environment light contribution
+[x] Create material response to lighting
+[x] Implement specular highlights
+[ ] Add subsurface scattering for applicable materials
+[ ] Configure metallic and roughness properties
+7. Frontend Performance Optimization
+[ ] Implement frustum culling
+[ ] Add Web Workers for heavy calculations
+[ ] Create worker for lighting calculations
+[ ] Offload physics to separate thread
+[ ] Integrate WebAssembly for intensive operations
+[ ] Identify performance bottlenecks
+[ ] Convert critical algorithms to WASM
+[ ] Implement progressive rendering
+[ ] Start with low-quality preview
+[ ] Progressively refine image quality
+[ ] Add quality settings interface
+[ ] Create presets (low, medium, high)
+[ ] Allow custom quality configurations
+8. Frontend Data Management
+[x] Implement local storage for scene state
+[ ] Create mock API services for future backend integration
+[ ] Build asset preloading strategy
+[ ] Add local caching for frequently used assets
+[x] Implement state management (Redux/Context API)
+9. Lighting Analysis Tools (Frontend)
+[ ] Implement client-side light level visualization
+[ ] Create false-color overlays for lux levels
+[ ] Add isolines for equal illumination
+[ ] Add simplified lighting metrics calculation
+[ ] Calculate and display approximate illumination
+[ ] Show estimated min/max values
+[ ] Implement basic glare analysis
+[ ] Create local reporting functionality
+[ ] Generate simple reports
+[ ] Export basic lighting data
+10. UI Polish and User Experience
+[x] Create project saving/loading to local storage
+[ ] Save fixture placements
+[ ] Store custom settings
+[ ] Implement scene presets
+[ ] Time of day presets
+[ ] Seasonal lighting variations
+[ ] Add tutorial overlays for new users
+[ ] Create presentation mode
+[ ] Hide UI elements
+[ ] Add camera path animation
+[ ] Support side-by-side comparisons
+[ ] Implement keyboard shortcuts
+[ ] Add mobile-friendly controls (if required)
+11. Frontend Testing
+[ ] Perform cross-browser testing
+[ ] Validate basic lighting accuracy
+[ ] Conduct usability testing
+[ ] Optimize load times and first paint
+[ ] Test on target devices/platforms
+[ ] Verify accessibility compliance
+12. Frontend Deployment
+[ ] Set up production build pipeline
+[ ] Implement code splitting and lazy loading
+[ ] Optimize asset delivery
+[ ] Create deployment documentation
+[ ] Perform security audit
+13. Frontend Documentation
+[x] Create user manual
+[ ] Document component architecture
+[ ] Write developer documentation
+[ ] Add inline code documentation

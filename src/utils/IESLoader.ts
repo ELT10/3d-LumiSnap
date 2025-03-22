@@ -115,10 +115,10 @@ export class IESLoader {
       multiplier, 
       verticalAnglesCount, 
       horizontalAnglesCount,
-      photometricType, 
-      unitType, 
-      width, 
-      length
+      _photometricType, 
+      _unitType, 
+      _width, 
+      _length
     ] = counts;
     
     const totalLumens = lampCount * lumensPerLamp;

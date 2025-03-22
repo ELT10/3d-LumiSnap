@@ -197,7 +197,7 @@ const FixtureInstance = ({
     const loadIES = async () => {
       if (fixture.iesProfile) {
         try {
-          const data = await loadIESProfile(fixture.iesProfile);
+          const data = await loadIESProfile();
           setIESData(data);
         } catch (error) {
           console.error("Failed to load IES profile:", error);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSceneStore, LightFixture } from '../store/sceneStore';
+import { useSceneStore } from '../store/sceneStore';
 import * as THREE from 'three';
 import './FixturePropertiesPanel.css';
 

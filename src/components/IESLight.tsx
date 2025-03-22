@@ -1,6 +1,5 @@
 import React, { useRef, useEffect } from 'react';
 import * as THREE from 'three';
-import { useThree } from '@react-three/fiber';
 import { IESData } from '../hooks/useIESLoader';
 
 interface IESLightProps {

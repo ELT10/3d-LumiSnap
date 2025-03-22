@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { useSceneStore, LightFixture } from '../store/sceneStore';
+import React, { useState } from 'react';
+import { useSceneStore } from '../store/sceneStore';
 import * as THREE from 'three';
 import { useSurfaceStore } from '../store/surfaceStore';
 import './FixturePanel.css';

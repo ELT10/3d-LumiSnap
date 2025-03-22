@@ -18,7 +18,7 @@ export const useIESLoader = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const loadIESProfile = useCallback(async (profilePath: string): Promise<IESData> => {
+  const loadIESProfile = useCallback(async (): Promise<IESData> => {
     // This is a placeholder implementation that returns mock data
     // In a real implementation, we would load and parse the IES file
     

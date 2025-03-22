@@ -1,8 +1,7 @@
 import { useRef, useEffect } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { useSceneStore } from '../store/sceneStore';
-import { Mesh, Group, MeshStandardMaterial, Material } from 'three';
-import { useThree } from '@react-three/fiber';
+import { Mesh, Group, MeshStandardMaterial } from 'three';
 
 // Use the new house model
 const DEFAULT_MODEL_PATH = '/models/house1/result.gltf';
@@ -12,12 +11,11 @@ interface BuildingModelProps {
 }
 
 export const BuildingModel = ({ modelPath = DEFAULT_MODEL_PATH }: BuildingModelProps) => {
-  const { scene } = useThree();
   const group = useRef<Group>(null);
   const setBuildingModelLoaded = useSceneStore(state => state.setBuildingModelLoaded);
   
   // Use Suspense with useGLTF to handle loading
-  const { scene: model, materials } = useGLTF(modelPath);
+  const { scene: model } = useGLTF(modelPath);
   
   useEffect(() => {
     if (model) {

@@ -49,9 +49,7 @@ const Scene = ({ showStats = true, environmentPreset = 'night' }: SceneProps) =>
   // Get shared state from our surface store
   const isDragging = useSurfaceStore(state => state.isDragging);
   const currentHit = useSurfaceStore(state => state.currentHit);
-  const draggedFixtureData = useSurfaceStore(state => state.draggedFixtureData);
   const setIsDragging = useSurfaceStore(state => state.setIsDragging);
-  const setDraggedFixtureData = useSurfaceStore(state => state.setDraggedFixtureData);
   const clearDragState = useSurfaceStore(state => state.clearDragState);
   
   // Disable orbit controls when a fixture is selected or when dragging
@@ -276,7 +274,6 @@ const SurfaceDetector: React.FC<SurfaceDetectorProps> = ({ containerRef }) => {
   
   // Get shared state from our surface store
   const isDragging = useSurfaceStore(state => state.isDragging);
-  const draggedFixtureData = useSurfaceStore(state => state.draggedFixtureData);
   const setCurrentHit = useSurfaceStore(state => state.setCurrentHit);
   const currentHit = useSurfaceStore(state => state.currentHit);
   
@@ -379,13 +376,12 @@ const SurfaceDetector: React.FC<SurfaceDetectorProps> = ({ containerRef }) => {
   });
   
   // Render the preview if dragging and we have a hit
-  if (isDragging && currentHit && draggedFixtureData) {
+  if (isDragging && currentHit) {
     return (
       <FixturePreview 
         position={currentHit.position} 
         normal={currentHit.normal}
         surfaceType={currentHit.surfaceType}
-        fixtureType={draggedFixtureData.type}
       />
     );
   }

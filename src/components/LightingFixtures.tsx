@@ -4,7 +4,7 @@ import { useThree } from '@react-three/fiber';
 import { TransformControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { IESLight } from '.';
-import { useIESLoader } from '../hooks';
+import { useIESLoader, IESData } from '../hooks';
 import { calculateFixtureScaleFactor } from '../utils/scalingUtils';
 import './LightingFixtures.css';
 
@@ -107,12 +107,32 @@ const FixtureInstance = ({
   const { camera, raycaster } = useThree();
   // Use local state to track UI state, but sync with global state for history
   const [isDragging, setLocalDragging] = useState(false);
-  const [iesData, setIESData] = useState<any>(null);
+  const [iesData, setIESData] = useState<IESData | null>(null);
+  const [isLoadingIES, setIsLoadingIES] = useState(false);
   const { loadIESProfile } = useIESLoader();
   const [time, setTime] = useState(0);
   const orbitControlsRef = useThree(state => state.controls);
   const [isActuallyTransforming, setIsActuallyTransforming] = useState(false);
   const transformingTimerRef = useRef<number | null>(null);
+  
+  // Load IES profile data when the component mounts or when the profile changes
+  useEffect(() => {
+    if (!fixture.iesProfile) return;
+    
+    setIsLoadingIES(true);
+    
+    loadIESProfile(fixture.iesProfile)
+      .then((data) => {
+        setIESData(data);
+        console.log(`Loaded IES profile for ${fixture.name}: `, data);
+      })
+      .catch((error) => {
+        console.error(`Failed to load IES profile ${fixture.iesProfile}:`, error);
+      })
+      .finally(() => {
+        setIsLoadingIES(false);
+      });
+  }, [fixture.iesProfile, loadIESProfile]);
   
   // Sync local dragging state with global state
   useEffect(() => {
@@ -128,7 +148,55 @@ const FixtureInstance = ({
   const scaledIntensity = fixture.intensity * 
     (isSelected ? 1.3 : 1.0) * 
     Math.max(1, scaleFactor) * 
-    Math.max(0.5, fixture.scale.x); // Scale light intensity with fixture
+    Math.max(0.5, fixture.scale.x);
+  
+  // Determine light parameters based on fixture type
+  const getLightParameters = useCallback(() => {
+    // Default parameters
+    const defaults = {
+      angle: Math.PI / 4,
+      penumbra: 0.3,
+      distance: 20 * Math.max(0.5, fixture.scale.x),
+      decay: 2
+    };
+    
+    // Apply type-specific parameters
+    switch(fixture.type) {
+      case 'spotlight':
+        return {
+          ...defaults,
+          angle: Math.PI / 6, // Narrower beam
+          penumbra: 0.2, // Sharper edge
+          distance: 25 * Math.max(0.5, fixture.scale.x)
+        };
+      case 'grazer':
+        return {
+          ...defaults,
+          angle: Math.PI / 8, // Very narrow beam
+          penumbra: 0.1, // Very sharp edge
+          distance: 15 * Math.max(0.5, fixture.scale.x)
+        };
+      case 'wallLight':
+        return {
+          ...defaults,
+          angle: Math.PI / 3, // Wider beam
+          penumbra: 0.5, // Softer edge
+          distance: 10 * Math.max(0.5, fixture.scale.x)
+        };
+      case 'pendant':
+        return {
+          ...defaults,
+          angle: Math.PI / 2, // Very wide beam
+          penumbra: 0.4, // Medium edge softness
+          distance: 15 * Math.max(0.5, fixture.scale.x)
+        };
+      default:
+        return defaults;
+    }
+  }, [fixture.type, fixture.scale.x]);
+  
+  // Get the light parameters based on fixture type
+  const lightParams = getLightParameters();
   
   // Initialize spotlight target
   useEffect(() => {
@@ -153,26 +221,6 @@ const FixtureInstance = ({
       }
     };
   }, []);
-  
-  // Replace the existing effect for updating light properties with this simpler version
-  useEffect(() => {
-    // Update spotlight reference if available
-    if (spotlightRef.current) {
-      // Point the spotlight at the target
-      spotlightRef.current.target = spotlightTargetRef.current;
-      
-      // Scale light properties with fixture scale
-      const scaleValue = Math.max(0.5, fixture.scale.x); // Use x as reference but ensure minimum
-      
-      // Update spotlight properties - match the values used in the JSX
-      spotlightRef.current.distance = 20 * scaleValue; // Match the 20 units in JSX
-      spotlightRef.current.angle = Math.PI / 4; // Match the wider angle
-      spotlightRef.current.penumbra = 0.3; // Match the penumbra value
-      
-      // Ensure intensity is not zero and double it for visibility
-      spotlightRef.current.intensity = Math.max(0.5, scaledIntensity) * 2;
-    }
-  }, [fixture.scale, scaledIntensity]);
   
   // Disable orbit controls when using transform controls
   useEffect(() => {
@@ -239,22 +287,6 @@ const FixtureInstance = ({
       return () => clearInterval(interval);
     }
   }, [isSelected, transformMode]);
-  
-  // Load IES profile data if available
-  useEffect(() => {
-    const loadIES = async () => {
-      if (fixture.iesProfile) {
-        try {
-          const data = await loadIESProfile();
-          setIESData(data);
-        } catch (error) {
-          console.error("Failed to load IES profile:", error);
-        }
-      }
-    };
-    
-    loadIES();
-  }, [fixture.iesProfile, loadIESProfile]);
   
   // Handle selection click
   const handleFixtureClick = (e: any) => {
@@ -366,26 +398,40 @@ const FixtureInstance = ({
           </mesh>
         )}
         
-        {/* Spotlight for lighting effects */}
-        <spotLight 
-          ref={spotlightRef}
-          position={[0, 0, 0]}
-          color={fixture.color}
-          intensity={scaledIntensity}
-          distance={20 * Math.max(0.5, fixture.scale.x)}
-          angle={Math.PI / 4}
-          penumbra={0.3}
-          castShadow
-        />
-        
-        {/* Use specialized IES light if data is available */}
-        {iesData && (
+        {/* Use IES Light when IES data is available */}
+        {iesData ? (
           <IESLight 
-            position={[0, 0, 0]}
             iesData={iesData}
-            intensity={scaledIntensity * 0.5}
+            position={[0, 0, 0]}
             color={fixture.color}
+            intensity={scaledIntensity}
+            distance={lightParams.distance}
+            castShadow={true}
+            shadowMapSize={1024}
+            target={spotlightTargetRef.current}
           />
+        ) : (
+          /* Fallback spotlight when IES data is not available or still loading */
+          <spotLight 
+            ref={spotlightRef}
+            position={[0, 0, 0]}
+            color={fixture.color}
+            intensity={scaledIntensity}
+            distance={lightParams.distance}
+            angle={lightParams.angle}
+            penumbra={lightParams.penumbra}
+            decay={lightParams.decay}
+            castShadow
+            target={spotlightTargetRef.current}
+          />
+        )}
+        
+        {/* Optional visual indicator for light direction */}
+        {isSelected && (
+          <mesh position={[0, 0, -1]} scale={[0.05, 0.05, 2]}>
+            <boxGeometry />
+            <meshBasicMaterial color={0xffff00} transparent opacity={0.3} />
+          </mesh>
         )}
       </group>
 

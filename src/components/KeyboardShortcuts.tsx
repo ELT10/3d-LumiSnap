@@ -70,6 +70,12 @@ const KeyboardShortcuts = () => {
             </span>
             <span>Scale</span>
           </div>
+          <div className="shortcut-item">
+            <span className="key-combo">
+              <kbd>Del</kbd>/<kbd>Backspace</kbd>
+            </span>
+            <span>Delete fixture</span>
+          </div>
         </div>
       </div>
     </div>

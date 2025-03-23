@@ -20,6 +20,7 @@ const Scene = ({ showStats = true, environmentPreset = 'night' }: SceneProps) =>
   const addFixture = useSceneStore(state => state.addFixture);
   const selectedFixtureId = useSceneStore(state => state.selectedFixtureId);
   const selectFixture = useSceneStore(state => state.selectFixture);
+  const removeFixture = useSceneStore(state => state.removeFixture);
   
   // State for transform controls
   const [transformMode, setTransformMode] = useState<'translate' | 'rotate' | 'scale'>('translate');
@@ -39,12 +40,19 @@ const Scene = ({ showStats = true, environmentPreset = 'night' }: SceneProps) =>
         case 's': // 's' for scale
           setTransformMode('scale');
           break;
+        case 'delete': // Delete key for removing fixture
+        case 'backspace': // Alternative key for removing fixture
+          if (window.confirm('Are you sure you want to delete this fixture?')) {
+            removeFixture(selectedFixtureId);
+            selectFixture(null);
+          }
+          break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedFixtureId]);
+  }, [selectedFixtureId, removeFixture, selectFixture]);
   
   // Get shared state from our surface store
   const isDragging = useSurfaceStore(state => state.isDragging);
@@ -214,6 +222,18 @@ const Scene = ({ showStats = true, environmentPreset = 'night' }: SceneProps) =>
               title="Scale (S)"
             >
               Scale
+            </button>
+            <button 
+              className="transform-btn delete-btn"
+              onClick={() => {
+                if (window.confirm('Are you sure you want to delete this fixture?')) {
+                  removeFixture(selectedFixtureId);
+                  selectFixture(null);
+                }
+              }}
+              title="Delete (Del)"
+            >
+              Delete
             </button>
           </div>
         </div>

@@ -17,6 +17,14 @@ const SAMPLE_FIXTURES = [
   },
   {
     id: 'fixture-2',
+    name: 'Grazer',
+    manufacturer: 'LightCorp',
+    type: 'grazer',
+    iesProfile: '/ies/grazer.ies',
+    thumbnail: '/thumbnails/grazer.jpg'
+  },
+  {
+    id: 'fixture-3',
     name: 'Wall Sconce',
     manufacturer: 'LightCorp',
     type: 'wallLight',
@@ -24,7 +32,7 @@ const SAMPLE_FIXTURES = [
     thumbnail: '/thumbnails/sconce.jpg'
   },
   {
-    id: 'fixture-3',
+    id: 'fixture-4',
     name: 'Pendant Light',
     manufacturer: 'LightCorp',
     type: 'pendant',
@@ -44,6 +52,10 @@ interface FixtureCatalogItem {
 
 export const FixturePanel: React.FC = () => {
   const addFixture = useSceneStore(state => state.addFixture);
+  const removeFixture = useSceneStore(state => state.removeFixture);
+  const lightFixtures = useSceneStore(state => state.lightFixtures);
+  const selectFixture = useSceneStore(state => state.selectFixture);
+  const selectedFixtureId = useSceneStore(state => state.selectedFixtureId);
   const setDraggedFixtureData = useSurfaceStore(state => state.setDraggedFixtureData);
   const [searchTerm, setSearchTerm] = useState('');
   const [fixtures] = useState<FixtureCatalogItem[]>(SAMPLE_FIXTURES);
@@ -88,6 +100,12 @@ export const FixturePanel: React.FC = () => {
       name: fixture.name,
       manufacturer: fixture.manufacturer
     });
+  };
+  
+  const handleDeleteFixture = (id: string) => {
+    if (window.confirm('Are you sure you want to delete this fixture?')) {
+      removeFixture(id);
+    }
   };
   
   const openSaveModal = () => {
@@ -157,6 +175,43 @@ export const FixturePanel: React.FC = () => {
             No fixtures found matching "{searchTerm}"
           </div>
         )}
+      </div>
+      
+      {/* Active fixtures section with delete buttons */}
+      <div className="active-fixtures-section">
+        <h3>Scene Fixtures</h3>
+        <div className="active-fixtures-list">
+          {lightFixtures.length > 0 ? (
+            lightFixtures.map(fixture => (
+              <div 
+                key={fixture.id} 
+                className={`active-fixture-item ${selectedFixtureId === fixture.id ? 'selected' : ''}`}
+                onClick={() => selectFixture(fixture.id)}
+              >
+                <div className="fixture-info">
+                  <div className="fixture-name">{fixture.name}</div>
+                  <div className="fixture-type">{fixture.type}</div>
+                </div>
+                <div className="fixture-controls">
+                  <button 
+                    className="fixture-delete-button"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering the parent onClick
+                      handleDeleteFixture(fixture.id);
+                    }}
+                    title="Delete Fixture"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="no-active-fixtures">
+              No fixtures in scene
+            </div>
+          )}
+        </div>
       </div>
       
       {/* Project modal */}

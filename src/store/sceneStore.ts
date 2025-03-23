@@ -27,6 +27,7 @@ type SceneState = {
   selectFixture: (id: string | null) => void;
   setDragging: (isDragging: boolean) => void;
   setBuildingModelLoaded: (loaded: boolean) => void;
+  clearFixtures: () => void;
 };
 
 export const useSceneStore = create<SceneState>((set) => ({
@@ -71,5 +72,11 @@ export const useSceneStore = create<SceneState>((set) => ({
   
   setDragging: (isDragging) => set({ isDragging }),
   
-  setBuildingModelLoaded: (loaded) => set({ buildingModelLoaded: loaded })
+  setBuildingModelLoaded: (loaded) => set({ buildingModelLoaded: loaded }),
+  
+  // New action to clear all fixtures
+  clearFixtures: () => set({ 
+    lightFixtures: [],
+    selectedFixtureId: null
+  })
 })); 

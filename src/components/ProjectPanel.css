@@ -1,0 +1,164 @@
+.project-panel {
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  padding: 16px;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Modal styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.modal {
+  width: 400px;
+  max-width: 90%;
+  padding: 24px;
+  position: relative;
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.close-button:hover {
+  color: #fff;
+}
+
+.project-panel h3 {
+  margin-top: 0;
+  margin-bottom: 0;
+  font-size: 20px;
+  color: #ffffff;
+}
+
+.project-panel h4 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 16px;
+  color: #dddddd;
+}
+
+.save-section,
+.load-section {
+  margin-bottom: 16px;
+}
+
+.input-group {
+  display: flex;
+  gap: 8px;
+}
+
+.project-panel input,
+.project-panel select {
+  flex: 1;
+  background-color: #333;
+  color: #ffffff;
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.project-panel input::placeholder {
+  color: #888;
+}
+
+.project-panel select {
+  cursor: pointer;
+}
+
+.button-group {
+  display: flex;
+  gap: 8px;
+}
+
+.project-panel button {
+  padding: 10px 16px;
+  background-color: #3d7ae5;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.project-panel button:hover {
+  background-color: #2c65c9;
+}
+
+.delete-button {
+  background-color: #e74c3c !important;
+}
+
+.delete-button:hover {
+  background-color: #c0392b !important;
+}
+
+.message {
+  padding: 8px;
+  margin-bottom: 16px;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.message.success {
+  background-color: rgba(46, 204, 113, 0.2);
+  color: #2ecc71;
+  border: 1px solid rgba(46, 204, 113, 0.4);
+}
+
+.message.error {
+  background-color: rgba(231, 76, 60, 0.2);
+  color: #e74c3c;
+  border: 1px solid rgba(231, 76, 60, 0.4);
+}
+
+.no-projects {
+  color: #888;
+  font-style: italic;
+  text-align: center;
+  margin: 10px 0;
+} 

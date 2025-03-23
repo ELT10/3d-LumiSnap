@@ -4,73 +4,131 @@
   right: 0;
   width: 300px;
   height: 100vh;
-  background-color: rgba(30, 30, 30, 0.9);
-  color: #fff;
+  background-color: #2a2a2a;
+  color: #ffffff;
   display: flex;
   flex-direction: column;
-  padding: 16px;
-  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   overflow-y: auto;
   z-index: 1000;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  max-height: 80vh;
+}
+
+.fixture-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
 }
 
 .fixture-panel h2 {
-  font-size: 1.3rem;
-  margin-bottom: 16px;
-  color: #fff;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  padding-bottom: 8px;
+  font-size: 18px;
+  margin: 0 0 5px 0;
+  color: #ffffff;
+}
+
+.project-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.project-button {
+  background-color: #333;
+  color: #ffffff;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.save-button:hover {
+  background-color: #2c8657;
+  border-color: #2ecc71;
+}
+
+.load-button:hover {
+  background-color: #2c74b3;
+  border-color: #3498db;
 }
 
 .search-container {
-  margin-bottom: 16px;
+  margin-bottom: 15px;
 }
 
 .search-input {
   width: 100%;
-  padding: 8px 12px;
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 10px;
   border-radius: 4px;
-  color: #fff;
-  font-size: 0.9rem;
-  outline: none;
-  transition: all 0.2s ease;
+  border: 1px solid #444;
+  background-color: #333;
+  color: #ffffff;
+  font-size: 14px;
 }
 
-.search-input:focus {
-  background-color: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.4);
+.search-input::placeholder {
+  color: #999;
 }
 
 .fixtures-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex: 1;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #555 #333;
+  margin: 0 -5px;
+  padding: 0 5px;
+}
+
+.fixtures-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.fixtures-list::-webkit-scrollbar-track {
+  background: #333;
+  border-radius: 4px;
+}
+
+.fixtures-list::-webkit-scrollbar-thumb {
+  background-color: #555;
+  border-radius: 4px;
 }
 
 .fixture-item {
   display: flex;
   align-items: center;
-  padding: 8px;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 10px;
+  background-color: #333;
+  border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s, transform 0.1s;
+  border: 1px solid #444;
 }
 
 .fixture-item:hover {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: #3a3a3a;
+  transform: translateY(-2px);
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
+}
+
+.fixture-item:active {
+  transform: translateY(0);
 }
 
 .fixture-thumbnail {
   width: 50px;
   height: 50px;
-  background-color: rgba(0, 0, 0, 0.3);
   border-radius: 4px;
   overflow: hidden;
   margin-right: 12px;
+  background-color: #444;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -83,9 +141,9 @@
 }
 
 .thumbnail-placeholder {
-  font-size: 1.5rem;
+  font-size: 20px;
   font-weight: bold;
-  color: rgba(255, 255, 255, 0.7);
+  color: #ddd;
 }
 
 .fixture-info {
@@ -93,19 +151,18 @@
 }
 
 .fixture-name {
-  font-size: 0.9rem;
   font-weight: 600;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .fixture-manufacturer {
-  font-size: 0.8rem;
-  opacity: 0.7;
+  font-size: 12px;
+  color: #aaa;
 }
 
 .no-fixtures {
-  padding: 16px;
+  padding: 20px;
   text-align: center;
-  color: rgba(255, 255, 255, 0.6);
+  color: #999;
   font-style: italic;
 } 

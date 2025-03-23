@@ -52,10 +52,10 @@ Frontend Todo List
 [x] Implement drag and drop mechanics
 [x] Handle mouse/touch events for dragging
 [x] Implement fixture placement on surfaces
-[ ] Add snapping to architectural elements
+[x] Add snapping to architectural elements
 [x] Create fixture manipulation controls
 [x] Rotation controls
-[ ] Scale controls (if needed)
+[x] Scale controls (if needed)
 [x] Height/position adjustment
 [ ] Add undo/redo functionality
 [x] Implement fixture property editor

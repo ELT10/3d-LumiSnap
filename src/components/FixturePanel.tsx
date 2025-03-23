@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useSceneStore } from '../store/sceneStore';
 import * as THREE from 'three';
 import { useSurfaceStore } from '../store/surfaceStore';
+import { ProjectPanel } from '.';
 import './FixturePanel.css';
 
 // Sample fixture data (would be replaced with real catalog data)
@@ -47,6 +48,10 @@ export const FixturePanel: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [fixtures] = useState<FixtureCatalogItem[]>(SAMPLE_FIXTURES);
   
+  // State for project modal
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const [projectModalMode, setProjectModalMode] = useState<'save' | 'load'>('save');
+  
   // Filter fixtures based on search term
   const filteredFixtures = fixtures.filter(fixture => 
     fixture.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -85,9 +90,33 @@ export const FixturePanel: React.FC = () => {
     });
   };
   
+  const openSaveModal = () => {
+    setProjectModalMode('save');
+    setIsProjectModalOpen(true);
+  };
+  
+  const openLoadModal = () => {
+    setProjectModalMode('load');
+    setIsProjectModalOpen(true);
+  };
+  
+  const closeProjectModal = () => {
+    setIsProjectModalOpen(false);
+  };
+  
   return (
     <div className="fixture-panel">
-      <h2>Lighting Fixtures</h2>
+      <div className="fixture-panel-header">
+        <h2>Lighting Fixtures</h2>
+        <div className="project-buttons">
+          <button className="project-button save-button" onClick={openSaveModal}>
+            Save
+          </button>
+          <button className="project-button load-button" onClick={openLoadModal}>
+            Load
+          </button>
+        </div>
+      </div>
       
       <div className="search-container">
         <input 
@@ -129,6 +158,13 @@ export const FixturePanel: React.FC = () => {
           </div>
         )}
       </div>
+      
+      {/* Project modal */}
+      <ProjectPanel 
+        isOpen={isProjectModalOpen}
+        mode={projectModalMode}
+        onClose={closeProjectModal}
+      />
     </div>
   );
 }; 

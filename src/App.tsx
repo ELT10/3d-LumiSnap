@@ -72,7 +72,7 @@ function App() {
       <div className="info-overlay">
         <div className="app-title">3D Lighting Simulator</div>
         <div className="controls-info">
-          <p><strong>Controls:</strong> Drag to rotate | Scroll to zoom | Right-click + drag to pan</p>
+          <p><strong>Controls:</strong> Drag to rotate | Scroll to zoom | Right-click + drag to pan | Cmd+C to copy, Cmd+V to paste exact duplicate</p>
           <div className="controls-buttons">
             <button 
               className="control-button undo-button" 

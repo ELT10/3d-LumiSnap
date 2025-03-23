@@ -1,0 +1,68 @@
+/* Cursor styling during duplication */
+body.duplication-active {
+  cursor: crosshair !important; /* Force crosshair to override other cursors */
+}
+
+/* Style for the helper text that appears during duplication */
+.duplication-helper {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 10000; /* Ensure it's on top of everything */
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  opacity: 0;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  min-width: 300px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Make the helper visible during duplication */
+body.duplication-active .duplication-helper {
+  opacity: 1;
+}
+
+/* Highlight for the original fixture during duplication */
+.fixture-original-highlight {
+  outline: 2px solid rgba(64, 196, 255, 0.8);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    outline-color: rgba(64, 196, 255, 0.8);
+  }
+  50% {
+    outline-color: rgba(64, 196, 255, 0.2);
+  }
+  100% {
+    outline-color: rgba(64, 196, 255, 0.8);
+  }
+}
+
+/* Source fixture highlight */
+.duplication-source {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px dashed #4fc3f7;
+  animation: rotate 4s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+} 

@@ -62,9 +62,8 @@ export const FixturePreview: React.FC<FixturePreviewProps> = ({
       // For ceilings, point downward
       return new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI, 0, 0));
     } else {
-      // For floors or other surfaces, align with the normal
-      const upVector = new THREE.Vector3(0, 1, 0);
-      return new THREE.Quaternion().setFromUnitVectors(upVector, normal);
+      // For floors, keep the fixture upright with default orientation
+      return new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, 0));
     }
   }, [normal, surfaceType]);
   

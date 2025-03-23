@@ -23,9 +23,11 @@ type HistoryEntry = {
 type SceneState = {
   lightFixtures: LightFixture[];
   selectedFixtureId: string | null;
+  copiedFixtureId: string | null; // Store which fixture was copied
   isDragging: boolean;
   isTransforming: boolean; // Add new state to track transform control interaction
   buildingModelLoaded: boolean;
+  isDuplicating: boolean; // Track when duplication is in process
   
   // History stacks for undo/redo
   history: HistoryEntry[];
@@ -36,10 +38,14 @@ type SceneState = {
   removeFixture: (id: string) => void;
   updateFixture: (id: string, updates: Partial<Omit<LightFixture, 'id'>>) => void;
   selectFixture: (id: string | null) => void;
+  copyFixture: (id: string | null) => void; // Copy a fixture
+  pasteFixture: (position?: THREE.Vector3, rotation?: THREE.Euler) => string | null; // Paste the copied fixture
   setDragging: (isDragging: boolean) => void;
   setTransforming: (isTransforming: boolean) => void; // New action for transform control state
   setBuildingModelLoaded: (loaded: boolean) => void;
   clearFixtures: () => void;
+  duplicateFixture: (id: string, position?: THREE.Vector3, rotation?: THREE.Euler) => string | null; // New action to duplicate a fixture
+  setDuplicating: (isDuplicating: boolean) => void; // Track duplication state
   
   // History actions
   undo: () => void;
@@ -65,9 +71,11 @@ export const useSceneStore = create<SceneState>((set, get) => ({
     }
   ],
   selectedFixtureId: null,
+  copiedFixtureId: null,
   isDragging: false,
   isTransforming: false,
   buildingModelLoaded: false,
+  isDuplicating: false,
   
   // Initialize history with the initial state
   history: [],
@@ -210,6 +218,84 @@ export const useSceneStore = create<SceneState>((set, get) => ({
     setTimeout(() => {
       get().pushToHistory();
     }, 0);
+  },
+  
+  // Duplicate an existing fixture
+  duplicateFixture: (id, position, rotation) => {
+    const state = get();
+    const fixture = state.lightFixtures.find(f => f.id === id);
+    
+    if (!fixture) return null;
+    
+    console.log("Duplicating fixture with ID:", id);
+    console.log("Original position:", fixture.position);
+    console.log("Original rotation:", fixture.rotation);
+    
+    if (position) console.log("New position:", position);
+    if (rotation) console.log("New rotation:", rotation);
+    
+    // Create a deep copy of the fixture with a new ID
+    const newFixture: LightFixture = {
+      ...fixture,
+      id: Math.random().toString(36).substring(2, 9),
+      name: `${fixture.name} (copy)`,
+      // Ensure position is properly copied
+      position: position ? 
+        new THREE.Vector3(position.x, position.y, position.z) : 
+        new THREE.Vector3(
+          fixture.position.x + 0.5,
+          fixture.position.y,
+          fixture.position.z + 0.5
+        ),
+      // Ensure rotation is properly copied
+      rotation: rotation ? 
+        new THREE.Euler(rotation.x, rotation.y, rotation.z, rotation.order) : 
+        new THREE.Euler(fixture.rotation.x, fixture.rotation.y, fixture.rotation.z, fixture.rotation.order),
+      // Ensure scale is properly copied
+      scale: new THREE.Vector3(fixture.scale.x, fixture.scale.y, fixture.scale.z),
+      // Ensure color is properly copied
+      color: new THREE.Color(fixture.color.r, fixture.color.g, fixture.color.b),
+    };
+    
+    console.log("Created new fixture:", newFixture);
+    
+    // Add the duplicated fixture
+    set(state => ({
+      lightFixtures: [...state.lightFixtures, newFixture]
+    }));
+    
+    // Select the new fixture
+    set({ selectedFixtureId: newFixture.id });
+    
+    // Push to history after the state has been updated
+    setTimeout(() => {
+      get().pushToHistory();
+    }, 0);
+    
+    return newFixture.id;
+  },
+  
+  // Track duplication state
+  setDuplicating: (isDuplicating) => set({ isDuplicating }),
+  
+  // Copy a fixture to store for later pasting
+  copyFixture: (id) => {
+    console.log("Copying fixture:", id);
+    set({ copiedFixtureId: id });
+  },
+  
+  // Paste the copied fixture at the given position
+  pasteFixture: (position, rotation) => {
+    const state = get();
+    const copiedId = state.copiedFixtureId;
+    
+    if (!copiedId) {
+      console.warn("Cannot paste: No fixture has been copied");
+      return null;
+    }
+    
+    // Use the existing duplicateFixture function
+    return state.duplicateFixture(copiedId, position, rotation);
   },
   
   // Undo action

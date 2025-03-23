@@ -349,6 +349,18 @@ const FixtureInstance = ({
     ? new THREE.Color(0xff7700).multiplyScalar(pulseValue)
     : fixture.color.clone().multiplyScalar(0.3);
   
+  // Set fixture ID in userData for the group
+  useEffect(() => {
+    if (groupRef.current) {
+      groupRef.current.userData.fixtureId = fixture.id;
+      
+      // Ensure the ID is also set on all children
+      groupRef.current.traverse((child) => {
+        child.userData.fixtureId = fixture.id;
+      });
+    }
+  }, [fixture.id]);
+  
   // Return JSX with TransformControls
   return (
     <>

@@ -6,6 +6,8 @@ import { LightingFixtures, BuildingModel, FixturePreview } from '.';
 import { useSceneStore } from '../store/sceneStore';
 import { useSurfaceStore } from '../store/surfaceStore';
 import { FixturePropertiesPanel } from './FixturePropertiesPanel';
+import DuplicationPreview from './DuplicationPreview';
+import DuplicationHelper from './DuplicationHelper';
 import './Scene.css';
 
 type SceneProps = {
@@ -21,6 +23,7 @@ const Scene = ({ showStats = true, environmentPreset = 'night' }: SceneProps) =>
   const selectedFixtureId = useSceneStore(state => state.selectedFixtureId);
   const selectFixture = useSceneStore(state => state.selectFixture);
   const removeFixture = useSceneStore(state => state.removeFixture);
+  const isDuplicating = useSceneStore(state => state.isDuplicating);
   
   // State for transform controls
   const [transformMode, setTransformMode] = useState<'translate' | 'rotate' | 'scale'>('translate');
@@ -60,12 +63,20 @@ const Scene = ({ showStats = true, environmentPreset = 'night' }: SceneProps) =>
   const setIsDragging = useSurfaceStore(state => state.setIsDragging);
   const clearDragState = useSurfaceStore(state => state.clearDragState);
   
-  // Disable orbit controls when a fixture is selected or when dragging
+  // Disable orbit controls when a fixture is selected, when dragging, or when duplicating
   useEffect(() => {
     if (orbitControlsRef.current) {
-      orbitControlsRef.current.enabled = !selectedFixtureId && !isDragging;
+      orbitControlsRef.current.enabled = !selectedFixtureId && !isDragging && !isDuplicating;
     }
-  }, [selectedFixtureId, isDragging]);
+    
+    // Log the control states for debugging
+    console.log("Control states:", { 
+      selectedFixtureId: !!selectedFixtureId, 
+      isDragging, 
+      isDuplicating, 
+      orbitEnabled: orbitControlsRef.current?.enabled 
+    });
+  }, [selectedFixtureId, isDragging, isDuplicating]);
   
   useEffect(() => {
     // Check for WebGL compatibility
@@ -81,6 +92,9 @@ const Scene = ({ showStats = true, environmentPreset = 'night' }: SceneProps) =>
   
   // Handle background click to deselect fixtures
   const handleBackgroundClick = (e: any) => {
+    // Skip if we're in duplication mode
+    if (isDuplicating) return;
+    
     // Directly deselect if we click on the canvas (not a mesh)
     if (!e.object || e.object.type === 'Scene' || e.object.type === 'Mesh' && !e.object.userData?.type) {
       // We've clicked directly on the background or a non-fixture object
@@ -198,6 +212,9 @@ const Scene = ({ showStats = true, environmentPreset = 'night' }: SceneProps) =>
       onDrop={handleDrop}
       ref={canvasRef}
     >
+      {/* Add the duplication helper outside the Canvas */}
+      <DuplicationHelper />
+      
       {/* Transform Controls UI - outside of Canvas */}
       {selectedFixtureId && (
         <div className="transform-controls-ui">
@@ -245,7 +262,6 @@ const Scene = ({ showStats = true, environmentPreset = 'night' }: SceneProps) =>
       <Canvas
         shadows
         camera={{
-          // position: [-100, 60, 100],
           position: [10, 10, 30],
           fov: 45,
           near: 0.1,
@@ -253,37 +269,60 @@ const Scene = ({ showStats = true, environmentPreset = 'night' }: SceneProps) =>
         }}
         gl={{
           antialias: true,
-          toneMapping: THREE.ACESFilmicToneMapping,
+          alpha: true,
+          preserveDrawingBuffer: true, // Needed for taking screenshots
+          logarithmicDepthBuffer: true // Helps with z-fighting
         }}
         onClick={handleBackgroundClick}
       >
-        {showStats && (
-          <Stats 
-            className="stats-panel"
-            showPanel={0} // 0: fps, 1: ms, 2: mb, 3+: custom
+        {/* Environment lighting */}
+        <Environment preset={environmentPreset} background={false} />
+        
+        {/* Ambient light */}
+        <ambientLight intensity={0.2} />
+        
+        {/* Orbit controls */}
+        <OrbitControls 
+          ref={orbitControlsRef}
+          target={[0, 0, 0]} 
+          enableDamping={true}
+          dampingFactor={0.05}
+          rotateSpeed={0.5}
+          maxPolarAngle={Math.PI * 0.45} // Prevent going below ground
+          minDistance={2}
+          maxDistance={200}
+        />
+        
+        {/* Surface detector for placing fixtures */}
+        <SurfaceDetector containerRef={canvasRef} />
+        
+        {/* Building model */}
+        <Suspense fallback={null}>
+          <BuildingModel />
+        </Suspense>
+        
+        {/* Fixtures */}
+        <LightingFixtures transformMode={transformMode} />
+        
+        {/* Preview for dragging new fixtures */}
+        {isDragging && currentHit && (
+          <FixturePreview 
+            position={currentHit.position} 
+            normal={currentHit.normal} 
+            surfaceType={currentHit.surfaceType} 
           />
         )}
         
-        <Suspense fallback={null}>
-          <Environment preset={environmentPreset} background />
-        </Suspense>
+        {/* Preview for duplicating fixtures */}
+        <DuplicationPreview />
         
-        <ambientLight intensity={0.2} />
+        {/* Stats display */}
+        {showStats &&  
+        <Stats 
+            className="stats-panel"
+            showPanel={0} // 0: fps, 1: ms, 2: mb, 3+: custom
+          />}
         
-        <BuildingModel />
-        <LightingFixtures transformMode={transformMode} />
-        
-        {/* This component handles surface detection and preview inside Canvas */}
-        <SurfaceDetector containerRef={canvasRef} />
-        
-        <OrbitControls 
-          ref={orbitControlsRef}
-          enableDamping
-          dampingFactor={0.05}
-          minDistance={0.1}
-          maxDistance={300}
-          maxPolarAngle={Math.PI / 2 - 0.1} // Prevent going below the ground plane
-        />
       </Canvas>
     </div>
   );
@@ -379,10 +418,9 @@ const SurfaceDetector: React.FC<SurfaceDetectorProps> = ({ containerRef }) => {
         // For ceilings, point downward
         rotation = new THREE.Euler(Math.PI, 0, 0);
       } else {
-        // For floors, align with normal
-        const upVector = new THREE.Vector3(0, 1, 0);
-        const quaternion = new THREE.Quaternion().setFromUnitVectors(upVector, normal);
-        rotation = new THREE.Euler().setFromQuaternion(quaternion);
+        // For floors, we want the fixture to be upright (not rotate to align with normal)
+        // Using default orientation (0, 0, 0) which keeps it upright
+        rotation = new THREE.Euler(0, 0, 0);
       }
       
       // Create the hit information with rotation information

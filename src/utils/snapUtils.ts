@@ -101,10 +101,8 @@ export function snapFixtureToNearestSurface(
       // For ceilings, point downward
       rotation = new THREE.Euler(Math.PI, 0, 0);
     } else {
-      // For floors, align with normal
-      const upVector = new THREE.Vector3(0, 1, 0);
-      const quaternion = new THREE.Quaternion().setFromUnitVectors(upVector, normal);
-      rotation = new THREE.Euler().setFromQuaternion(quaternion);
+      // For floors, we want the fixture to be upright (not rotate to align with normal)
+      rotation = new THREE.Euler(0, 0, 0);
     }
     
     return {
@@ -144,9 +142,7 @@ export function calculateFixtureRotation(
     // For ceilings, point downward
     return new THREE.Euler(Math.PI, 0, 0);
   } else {
-    // For floors, align with normal
-    const upVector = new THREE.Vector3(0, 1, 0);
-    const quaternion = new THREE.Quaternion().setFromUnitVectors(upVector, normal);
-    return new THREE.Euler().setFromQuaternion(quaternion);
+    // For floors, we want the fixture to be upright (not rotate to align with normal)
+    return new THREE.Euler(0, 0, 0);
   }
 } 

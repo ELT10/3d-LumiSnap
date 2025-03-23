@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { useSceneStore } from '../store/sceneStore';
-import { useSurfaceStore } from '../store/surfaceStore';
 
 /**
  * Handles the fixture copy-paste process

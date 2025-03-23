@@ -1504,11 +1504,936 @@ Now, let's update the CSS for the ProjectPanel to make it work as a modal:
 
 ---
 
+```diff
+    border-radius: 8px;
+    padding: 16px;
+-   margin: 16px 0;
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
++ 
++ /* Modal styles */
++ .modal-overlay {
++   position: fixed;
++   top: 0;
++   left: 0;
++   right: 0;
++   bottom: 0;
++   background-color: rgba(0, 0, 0, 0.7);
++   display: flex;
++   justify-content: center;
++   align-items: center;
++   z-index: 1000;
++   backdrop-filter: blur(2px);
++ }
++ 
++ .modal {
++   width: 400px;
++   max-width: 90%;
++   padding: 24px;
++   position: relative;
++   animation: modalFadeIn 0.2s ease-out;
++ }
++ 
++ @keyframes modalFadeIn {
++   from {
++     opacity: 0;
++     transform: translateY(20px);
++   }
++   to {
++     opacity: 1;
++     transform: translateY(0);
++   }
++ }
++ 
++ .modal-header {
++   display: flex;
++   justify-content: space-between;
++   align-items: center;
++   margin-bottom: 20px;
++ }
++ 
++ .close-button {
++   background: none;
++   border: none;
++   color: #999;
++   font-size: 24px;
++   cursor: pointer;
++   padding: 0;
++   margin: 0;
++   line-height: 1;
++   transition: color 0.2s;
++ }
++ 
++ .close-button:hover {
++   color: #fff;
++ }
+  
+  .project-panel h3 {
+    margin-top: 0;
+-   margin-bottom: 16px;
+-   font-size: 18px;
++   margin-bottom: 0;
++   font-size: 20px;
+    color: #ffffff;
+-   border-bottom: 1px solid #444;
+-   padding-bottom: 8px;
+  }
+  
+    border: 1px solid #444;
+    border-radius: 4px;
+-   padding: 8px;
++   padding: 10px;
+    margin-bottom: 8px;
+    font-size: 14px;
+  
+  .project-panel button {
+-   padding: 8px 16px;
++   padding: 10px 16px;
+    background-color: #3d7ae5;
+    color: white;
+```
+
+---
+
+Now, let's add the save/load buttons to the FixturePanel component:
+
+---
+
+```diff
+  import * as THREE from 'three';
+  import { useSurfaceStore } from '../store/surfaceStore';
++ import { ProjectPanel } from '.';
+  import './FixturePanel.css';
+  
+    const [searchTerm, setSearchTerm] = useState('');
+    const [fixtures] = useState<FixtureCatalogItem[]>(SAMPLE_FIXTURES);
++   
++   // State for project modal
++   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
++   const [projectModalMode, setProjectModalMode] = useState<'save' | 'load'>('save');
+    
+    // Filter fixtures based on search term
+      });
+    };
++   
++   const openSaveModal = () => {
++     setProjectModalMode('save');
++     setIsProjectModalOpen(true);
++   };
++   
++   const openLoadModal = () => {
++     setProjectModalMode('load');
++     setIsProjectModalOpen(true);
++   };
++   
++   const closeProjectModal = () => {
++     setIsProjectModalOpen(false);
++   };
+    
+    return (
+      <div className="fixture-panel">
+-       <h2>Lighting Fixtures</h2>
++       <div className="fixture-panel-header">
++         <h2>Lighting Fixtures</h2>
++         <div className="project-buttons">
++           <button className="project-button save-button" onClick={openSaveModal}>
++             Save
++           </button>
++           <button className="project-button load-button" onClick={openLoadModal}>
++             Load
++           </button>
++         </div>
++       </div>
+        
+        <div className="search-container">
+          )}
+        </div>
++       
++       {/* Project modal */}
++       <ProjectPanel 
++         isOpen={isProjectModalOpen}
++         mode={projectModalMode}
++         onClose={closeProjectModal}
++       />
+      </div>
+    );
+```
+
+---
+
+Let's update the FixturePanel CSS to style the new save/load buttons:
+
+---
+
+```diff
+    width: 300px;
+    height: 100vh;
+-   background-color: rgba(30, 30, 30, 0.9);
+-   color: #fff;
++   background-color: #2a2a2a;
++   color: #ffffff;
+    display: flex;
+    flex-direction: column;
+-   padding: 16px;
+-   box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
++   padding: 20px;
++   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    overflow-y: auto;
+    z-index: 1000;
++   border-radius: 8px;
++   margin-bottom: 20px;
++   max-height: 80vh;
++ }
++ 
++ .fixture-panel-header {
++   display: flex;
++   justify-content: space-between;
++   align-items: center;
++   margin-bottom: 16px;
+  }
+  
+  .fixture-panel h2 {
+-   font-size: 1.3rem;
+-   margin-bottom: 16px;
+-   color: #fff;
+-   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+-   padding-bottom: 8px;
++   font-size: 18px;
++   margin: 0 0 5px 0;
++   color: #ffffff;
++ }
++ 
++ .project-buttons {
++   display: flex;
++   gap: 8px;
++ }
++ 
++ .project-button {
++   background-color: #333;
++   color: #ffffff;
++   border: 1px solid #555;
++   border-radius: 4px;
++   padding: 6px 12px;
++   font-size: 13px;
++   cursor: pointer;
++   transition: all 0.2s ease;
++   display: flex;
++   align-items: center;
++   justify-content: center;
++ }
++ 
++ .save-button:hover {
++   background-color: #2c8657;
++   border-color: #2ecc71;
++ }
++ 
++ .load-button:hover {
++   background-color: #2c74b3;
++   border-color: #3498db;
+  }
+  
+  .search-container {
+-   margin-bottom: 16px;
++   margin-bottom: 15px;
+  }
+  
+  .search-input {
+    width: 100%;
+-   padding: 8px 12px;
+-   background-color: rgba(255, 255, 255, 0.1);
+-   border: 1px solid rgba(255, 255, 255, 0.2);
++   padding: 10px;
+    border-radius: 4px;
+-   color: #fff;
+-   font-size: 0.9rem;
+-   outline: none;
+-   transition: all 0.2s ease;
++   border: 1px solid #444;
++   background-color: #333;
++   color: #ffffff;
++   font-size: 14px;
+  }
+  
+- .search-input:focus {
+-   background-color: rgba(255, 255, 255, 0.15);
+-   border-color: rgba(255, 255, 255, 0.4);
++ .search-input::placeholder {
++   color: #999;
+  }
+  
+  .fixtures-list {
+-   display: flex;
+-   flex-direction: column;
+-   gap: 8px;
++   flex: 1;
+    overflow-y: auto;
++   scrollbar-width: thin;
++   scrollbar-color: #555 #333;
++   margin: 0 -5px;
++   padding: 0 5px;
++ }
++ 
++ .fixtures-list::-webkit-scrollbar {
++   width: 8px;
++ }
++ 
++ .fixtures-list::-webkit-scrollbar-track {
++   background: #333;
++   border-radius: 4px;
++ }
++ 
++ .fixtures-list::-webkit-scrollbar-thumb {
++   background-color: #555;
++   border-radius: 4px;
+  }
+  
+  .fixture-item {
+    display: flex;
+    align-items: center;
+-   padding: 8px;
+-   background-color: rgba(255, 255, 255, 0.1);
+-   border-radius: 4px;
++   padding: 10px;
++   margin-bottom: 10px;
++   background-color: #333;
++   border-radius: 6px;
+    cursor: pointer;
+-   transition: background-color 0.2s ease;
++   transition: background-color 0.2s, transform 0.1s;
++   border: 1px solid #444;
+  }
+  
+  .fixture-item:hover {
+-   background-color: rgba(255, 255, 255, 0.2);
++   background-color: #3a3a3a;
++   transform: translateY(-2px);
++   box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
++ }
++ 
++ .fixture-item:active {
++   transform: translateY(0);
+  }
+  
+  .fixture-thumbnail {
+    width: 50px;
+    height: 50px;
+-   background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-right: 12px;
++   background-color: #444;
+    display: flex;
+    align-items: center;
+  
+  .thumbnail-placeholder {
+-   font-size: 1.5rem;
++   font-size: 20px;
+    font-weight: bold;
+-   color: rgba(255, 255, 255, 0.7);
++   color: #ddd;
+  }
+  
+  
+  .fixture-name {
+-   font-size: 0.9rem;
+    font-weight: 600;
+-   margin-bottom: 4px;
++   margin-bottom: 3px;
+  }
+  
+  .fixture-manufacturer {
+-   font-size: 0.8rem;
+-   opacity: 0.7;
++   font-size: 12px;
++   color: #aaa;
+  }
+  
+  .no-fixtures {
+-   padding: 16px;
++   padding: 20px;
+    text-align: center;
+-   color: rgba(255, 255, 255, 0.6);
++   color: #999;
+    font-style: italic;
+  } 
+```
+
+---
+
+Now let's remove the ProjectPanel from the Scene component since we'll be displaying it as a modal from the FixturePanel:
+
+---
+
+```diff
+  import { Suspense, useEffect, useState, useRef, useCallback } from 'react';
+  import * as THREE from 'three';
+- import { LightingFixtures, BuildingModel, FixturePreview, ProjectPanel } from '.';
++ import { LightingFixtures, BuildingModel, FixturePreview } from '.';
+  import { useSceneStore } from '../store/sceneStore';
+  import { useSurfaceStore } from '../store/surfaceStore';
+        {/* Properties Panel for selected fixture */}
+        <FixturePropertiesPanel />
+-       
+-       <ProjectPanel />
+        
+        <Canvas
+```
+
+---
+
+Let's start the development server to test our implementation:
+
+---
+
 Cancelled
 
 ---
 
+_**User**_
 
+cool. if i saved a project "test1" and then loaded it later. when i click on save again, save as test1 again, dont ask for new projectname.
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+I'll modify the ProjectPanel component to automatically use the name of the previously loaded project when saving. Let's implement this:
+
+---
+
+```diff
+    const [message, setMessage] = useState('');
+    const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
++   // Store the currently loaded project name
++   const [currentProjectName, setCurrentProjectName] = useState<string | null>(null);
+    
+    const lightFixtures = useSceneStore(state => state.lightFixtures);
+        // Reset appropriate fields based on mode
+        if (mode === 'save') {
++         // If we have a currentProjectName, use it for saving
++         if (currentProjectName) {
++           setProjectName(currentProjectName);
++         } else {
+            setProjectName('');
++         }
+        } else {
+          setSelectedProject('');
+        }
+      }
+-   }, [isOpen, mode]);
++   }, [isOpen, mode, currentProjectName]);
+    
+    const refreshProjectList = () => {
+      if (success) {
+        showMessage(`Project "${projectName}" saved successfully!`, 'success');
++       // Update the current project name when we save
++       setCurrentProjectName(projectName);
+        refreshProjectList();
+-       setProjectName('');
+        
+        // Close modal after successful save
+          addFixture(fixtureProps);
+        });
++       
++       // Remember the loaded project name for future saves
++       setCurrentProjectName(selectedProject);
+        
+        showMessage(`Project "${selectedProject}" loaded successfully!`, 'success');
+          refreshProjectList();
+          setSelectedProject('');
++         
++         // If we deleted the current project, clear the current project name
++         if (selectedProject === currentProjectName) {
++           setCurrentProjectName(null);
++         }
+        } else {
+          showMessage(`Failed to delete project "${selectedProject}"`, 'error');
+                <button onClick={handleSave}>Save</button>
+              </div>
++             {currentProjectName && (
++               <div className="current-project-info">
++                 Saving to: {currentProjectName}
++               </div>
++             )}
+            </div>
+          )}
+```
+
+---
+
+Now, let's add a small style for the current project info display:
+
+---
+
+```diff
+    margin: 10px 0;
+  }
++ 
++ .current-project-info {
++   font-size: 12px;
++   color: #aaa;
++   margin-top: -4px;
++   margin-bottom: 8px;
++   text-align: center;
++ } 
+```
+
+---
+
+Perfect! I've implemented the requested feature. Now when you:
+
+1. Save a project with a name (e.g., "test1")
+2. Later load "test1" 
+3. And then click on save again
+
+The save dialog will automatically populate the project name field with "test1" instead of asking for a new project name. The system will also display "Saving to: test1" beneath the input field to make it clear what project is being updated.
+
+This allows you to quickly update an existing project without having to re-enter its name. The current project name is tracked and remembered between save/load operations, and if you delete the currently active project, the system will reset the current project name.
+
+---
+
+_**User**_
+
+show a loader when loading and saving
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+I'll implement a loading indicator for save and load operations. Let's update the ProjectPanel component first:
+
+---
+
+```diff
+    const [message, setMessage] = useState('');
+    const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
++   const [isLoading, setIsLoading] = useState(false);
+    // Store the currently loaded project name
+    const [currentProjectName, setCurrentProjectName] = useState<string | null>(null);
+        setMessage('');
+        setMessageType('');
++       setIsLoading(false);
+        
+        // Reset appropriate fields based on mode
+    };
+    
+-   const handleSave = () => {
++   const handleSave = async () => {
+      if (!projectName.trim()) {
+        showMessage('Please enter a project name', 'error');
+        return;
+      }
++     
++     setIsLoading(true);
++     
++     try {
++       // Small delay to simulate processing and show the loader
++       await new Promise(resolve => setTimeout(resolve, 600));
+        
+        const success = saveProject(projectName, lightFixtures);
+          showMessage('Failed to save project', 'error');
+        }
++     } catch (error) {
++       showMessage('An error occurred while saving', 'error');
++       console.error(error);
++     } finally {
++       setIsLoading(false);
++     }
+    };
+    
+-   const handleLoad = () => {
++   const handleLoad = async () => {
+      if (!selectedProject) {
+        showMessage('Please select a project to load', 'error');
+        return;
+      }
++     
++     setIsLoading(true);
++     
++     try {
++       // Small delay to simulate processing and show the loader
++       await new Promise(resolve => setTimeout(resolve, 600));
+        
+        const fixtures = loadProject(selectedProject);
+          showMessage(`Failed to load project "${selectedProject}"`, 'error');
+        }
++     } catch (error) {
++       showMessage('An error occurred while loading', 'error');
++       console.error(error);
++     } finally {
++       setIsLoading(false);
++     }
+    };
+    
+-   const handleDelete = () => {
++   const handleDelete = async () => {
+      if (!selectedProject) {
+        showMessage('Please select a project to delete', 'error');
+      
+      if (window.confirm(`Are you sure you want to delete project "${selectedProject}"?`)) {
++       setIsLoading(true);
++       
++       try {
++         // Small delay to simulate processing and show the loader
++         await new Promise(resolve => setTimeout(resolve, 600));
++         
+          const success = deleteProject(selectedProject);
+          
+          } else {
+            showMessage(`Failed to delete project "${selectedProject}"`, 'error');
++         }
++       } catch (error) {
++         showMessage('An error occurred while deleting', 'error');
++         console.error(error);
++       } finally {
++         setIsLoading(false);
+        }
+      }
+          <div className="modal-header">
+            <h3>{mode === 'save' ? 'Save Project' : 'Load Project'}</h3>
+-           <button className="close-button" onClick={onClose}>×</button>
++           <button className="close-button" onClick={onClose} disabled={isLoading}>×</button>
+          </div>
+          
+            </div>
+          )}
++         
++         {isLoading && (
++           <div className="loading-overlay">
++             <div className="spinner"></div>
++             <div className="loading-text">
++               {mode === 'save' ? 'Saving...' : mode === 'load' ? 'Loading...' : 'Processing...'}
++             </div>
++           </div>
++         )}
+          
+          {mode === 'save' && (
+                  onChange={(e) => setProjectName(e.target.value)}
+                  autoFocus
++                 disabled={isLoading}
+                />
+-               <button onClick={handleSave}>Save</button>
++               <button onClick={handleSave} disabled={isLoading}>Save</button>
+              </div>
+              {currentProjectName && (
+                    onChange={(e) => setSelectedProject(e.target.value)}
+                    autoFocus
++                   disabled={isLoading}
+                  >
+                    <option value="">Select a project</option>
+                  </select>
+                  <div className="button-group">
+-                   <button onClick={handleLoad}>Load</button>
+-                   <button onClick={handleDelete} className="delete-button">Delete</button>
++                   <button onClick={handleLoad} disabled={isLoading}>Load</button>
++                   <button 
++                     onClick={handleDelete} 
++                     className="delete-button" 
++                     disabled={isLoading}
++                   >
++                     Delete
++                   </button>
+                  </div>
+                </>
+```
+
+---
+
+Now, let's add the CSS for the loading spinner:
+
+---
+
+```diff
+    text-align: center;
+  }
++ 
++ /* Loading overlay and spinner */
++ .loading-overlay {
++   position: absolute;
++   top: 0;
++   left: 0;
++   right: 0;
++   bottom: 0;
++   background-color: rgba(20, 20, 20, 0.85);
++   display: flex;
++   flex-direction: column;
++   justify-content: center;
++   align-items: center;
++   border-radius: 8px;
++   z-index: 10;
++ }
++ 
++ .spinner {
++   width: 40px;
++   height: 40px;
++   border: 3px solid rgba(255, 255, 255, 0.3);
++   border-radius: 50%;
++   border-top-color: #3d7ae5;
++   animation: spin 1s ease-in-out infinite;
++   margin-bottom: 16px;
++ }
++ 
++ @keyframes spin {
++   to {
++     transform: rotate(360deg);
++   }
++ }
++ 
++ .loading-text {
++   color: #ffffff;
++   font-size: 16px;
++   font-weight: 500;
++ }
++ 
++ /* Disabled state for buttons and inputs */
++ .project-panel button:disabled,
++ .project-panel input:disabled,
++ .project-panel select:disabled {
++   opacity: 0.6;
++   cursor: not-allowed;
++ }
++ 
++ .close-button:disabled {
++   opacity: 0.3;
++   cursor: not-allowed;
++ } 
+```
+
+---
+
+I've implemented a loading indicator for save and load operations in your 3D lighting simulation project. Here's what I added:
+
+1. **Loading state management**:
+   - Added an `isLoading` state that tracks when operations are in progress
+   - Each operation (save, load, delete) now sets the loading state while processing
+
+2. **Visual loading indicator**:
+   - Added a fullscreen overlay with a spinning animation
+   - The overlay shows different text based on the operation (Saving..., Loading...)
+   - The spinner uses a clean blue accent color to match your UI
+
+3. **Improved UX during loading**:
+   - All form controls (buttons, inputs, select) are disabled during loading
+   - Added style changes for disabled elements to provide visual feedback
+   - The close button is also disabled during operations to prevent interruption
+
+4. **Error handling**:
+   - Added try/catch blocks to properly handle any errors during operations
+   - The loading state is always reset in a finally block to ensure it doesn't get stuck
+
+The loading process includes a small delay (600ms) to ensure the loading animation is visible even for quick operations. This provides a consistent experience and makes it clear to users that something is happening.
+
+The overlay has a semi-transparent dark background that dims the form but still keeps it visible, maintaining context while processing.
+
+---
+
+_**User**_
+
+when loading a project, show a "projectname loaded successfully" message on the modal before its automatically closed
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+I'll modify the ProjectPanel.tsx component to make the success message more visible before closing the modal. Let's update the code:
+
+---
+
+```diff
+          setCurrentProjectName(selectedProject);
+          
++         // Stop loading animation but keep modal open to show success message
++         setIsLoading(false);
++         
++         // Show success message
+          showMessage(`Project "${selectedProject}" loaded successfully!`, 'success');
+          
+-         // Close modal after successful load
++         // Close modal after giving time to read the success message
+          setTimeout(() => {
+            onClose();
+-         }, 1500);
++         }, 2500);
+        } else {
+          showMessage(`Failed to load project "${selectedProject}"`, 'error');
++         setIsLoading(false);
+        }
+      } catch (error) {
+        showMessage('An error occurred while loading', 'error');
+        console.error(error);
+-     } finally {
+        setIsLoading(false);
+      }
+```
+
+---
+
+Now let's apply the same improvement to the save functionality for consistency:
+
+---
+
+```diff
+        
+        if (success) {
+-         showMessage(`Project "${projectName}" saved successfully!`, 'success');
+          // Update the current project name when we save
+          setCurrentProjectName(projectName);
+          refreshProjectList();
+          
+-         // Close modal after successful save
++         // Stop loading animation but keep modal open to show success message
++         setIsLoading(false);
++         
++         // Show success message
++         showMessage(`Project "${projectName}" saved successfully!`, 'success');
++         
++         // Close modal after giving time to read the success message
+          setTimeout(() => {
+            onClose();
+-         }, 1500);
++         }, 2500);
+        } else {
+          showMessage('Failed to save project', 'error');
++         setIsLoading(false);
+        }
+      } catch (error) {
+        showMessage('An error occurred while saving', 'error');
+        console.error(error);
+-     } finally {
+        setIsLoading(false);
+      }
+```
+
+---
+
+Let's also update the delete function to follow the same pattern:
+
+---
+
+```diff
+          
+          if (success) {
+-           showMessage(`Project "${selectedProject}" deleted successfully!`, 'success');
+-           refreshProjectList();
+-           setSelectedProject('');
+-           
+            // If we deleted the current project, clear the current project name
+            if (selectedProject === currentProjectName) {
+              setCurrentProjectName(null);
+            }
++           
++           refreshProjectList();
++           setSelectedProject('');
++           
++           // Stop loading animation but keep modal open to show success message
++           setIsLoading(false);
++           
++           // Show success message
++           showMessage(`Project "${selectedProject}" deleted successfully!`, 'success');
++           
++           // For delete, we don't auto-close the modal so user can select another project
+          } else {
+            showMessage(`Failed to delete project "${selectedProject}"`, 'error');
++           setIsLoading(false);
+          }
+        } catch (error) {
+          showMessage('An error occurred while deleting', 'error');
+          console.error(error);
+-       } finally {
+          setIsLoading(false);
+        }
+```
+
+---
+
+Finally, let's update the styling for the success message to make it more prominent:
+
+---
+
+```diff
+  
+  .message {
+-   padding: 8px;
++   padding: 12px;
+    margin-bottom: 16px;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 14px;
++   font-weight: 500;
++   transition: all 0.3s ease-in-out;
+  }
+  
+    color: #2ecc71;
+    border: 1px solid rgba(46, 204, 113, 0.4);
++   animation: pulse 1s ease-in-out;
++ }
++ 
++ @keyframes pulse {
++   0% {
++     transform: scale(1);
++     box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4);
++   }
++   70% {
++     transform: scale(1.05);
++     box-shadow: 0 0 0 10px rgba(46, 204, 113, 0);
++   }
++   100% {
++     transform: scale(1);
++     box-shadow: 0 0 0 0 rgba(46, 204, 113, 0);
++   }
+  }
+  
+```
+
+---
+
+I've implemented the requested changes to make the success message more prominent when loading a project. Here's what I've done:
+
+1. **Improved Message Visibility**:
+   - Modified the load/save flow to stop the loading spinner while keeping the modal open
+   - Added a pulse animation effect to draw attention to the success message
+   - Increased the padding and added font weight to make the message more readable
+   - Extended the timeout to 2.5 seconds to give users more time to read the message
+
+2. **Consistent Experience**:
+   - Applied the same pattern to save, load, and delete operations
+   - For delete operations, we don't auto-close the modal since users might want to select another project
+
+3. **Enhanced Visual Feedback**:
+   - The success message now has a subtle pulse animation that draws attention to it
+   - The message appears immediately after the operation completes, with the loading spinner gone
+   - For load/save operations, the modal automatically closes after showing the success message
+
+These changes create a better user experience by ensuring users have clear confirmation that their operation was successful before the modal closes. The loading spinner transitions cleanly to the success message, making the workflow feel more polished and informative.
+
+---
+
+_**User**_
+
+this is how the modal looks like right now. improve the ui design 
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+I'll improve the UI design of your project modal to make it more modern and visually appealing. Let's enhance the styling in your ProjectPanel.css file:
 
 ---
 

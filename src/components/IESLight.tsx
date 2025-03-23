@@ -29,9 +29,6 @@ export const IESLight: React.FC<IESLightProps> = ({
   // Create a reference to the spotlight for controlling it directly
   const spotlightRef = useRef<THREE.SpotLight>(null);
   
-  // Create a reference to the shader material that will use the IES data
-  const iesMaterialRef = useRef<THREE.ShaderMaterial | null>(null);
-  
   // Create texture from IES data for use in shader
   useEffect(() => {
     if (!spotlightRef.current || !iesData) return;

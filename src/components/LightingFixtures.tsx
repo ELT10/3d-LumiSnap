@@ -108,7 +108,6 @@ const FixtureInstance = ({
   // Use local state to track UI state, but sync with global state for history
   const [isDragging, setLocalDragging] = useState(false);
   const [iesData, setIESData] = useState<IESData | null>(null);
-  const [isLoadingIES, setIsLoadingIES] = useState(false);
   const { loadIESProfile } = useIESLoader();
   const [time, setTime] = useState(0);
   const orbitControlsRef = useThree(state => state.controls);
@@ -119,8 +118,6 @@ const FixtureInstance = ({
   useEffect(() => {
     if (!fixture.iesProfile) return;
     
-    setIsLoadingIES(true);
-    
     loadIESProfile(fixture.iesProfile)
       .then((data) => {
         setIESData(data);
@@ -128,9 +125,6 @@ const FixtureInstance = ({
       })
       .catch((error) => {
         console.error(`Failed to load IES profile ${fixture.iesProfile}:`, error);
-      })
-      .finally(() => {
-        setIsLoadingIES(false);
       });
   }, [fixture.iesProfile, loadIESProfile]);
   

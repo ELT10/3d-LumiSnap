@@ -4309,6 +4309,337 @@ Here's how we'll fix it:
 
 ---
 
+```diff
+    selectedFixtureId: string | null;
+    isDragging: boolean;
++   isTransforming: boolean; // Add new state to track transform control interaction
+    buildingModelLoaded: boolean;
+    
+    selectFixture: (id: string | null) => void;
+    setDragging: (isDragging: boolean) => void;
++   setTransforming: (isTransforming: boolean) => void; // New action for transform control state
+    setBuildingModelLoaded: (loaded: boolean) => void;
+    clearFixtures: () => void;
+    selectedFixtureId: null,
+    isDragging: false,
++   isTransforming: false,
+    buildingModelLoaded: false,
+    
+    pushToHistory: () => {
+      const state = get();
++     
++     // Skip if we're in the middle of a drag or transform operation
++     if (state.isDragging || state.isTransforming) return;
++     
+      const newHistory = state.history.slice(0, state.historyIndex + 1);
+      const newEntry = {
+        selectedFixtureId: state.selectedFixtureId
+      };
++     
++     // Don't push identical states
++     const currentState = newHistory[state.historyIndex];
++     if (currentState && JSON.stringify(currentState) === JSON.stringify(newEntry)) {
++       return;
++     }
+      
+      newHistory.push(newEntry);
+      const state = get();
+      
+-     // Only push to history if we're not in the middle of a drag operation
++     // Only push to history if we're not in the middle of a drag or transform operation
+      // This prevents storing every small position update during dragging
+-     if (!state.isDragging) {
++     if (!state.isDragging && !state.isTransforming) {
+        get().pushToHistory();
+      }
+    },
+  
++   // Selecting a fixture should not create history entries
+    selectFixture: (id) => set({ selectedFixtureId: id }),
+    
+      // If ending a drag, save the final state
+      else if (prevDragging && !isDragging) {
++       // Small delay to ensure the final position is recorded
++       setTimeout(() => {
+          get().pushToHistory();
++       }, 0);
+      }
+      
+      set({ isDragging });
+    },
++   
++   // New action to handle transform control interaction state
++   setTransforming: (isTransforming) => {
++     const prevTransforming = get().isTransforming;
++     
++     // If starting to transform, save the initial state
++     if (!prevTransforming && isTransforming) {
++       get().pushToHistory();
++     }
++     // If ending a transform, save the final state
++     else if (prevTransforming && !isTransforming) {
++       // Small delay to ensure the final position is recorded
++       setTimeout(() => {
++         get().pushToHistory();
++       }, 0);
++     }
++     
++     set({ isTransforming });
++   },
+    
+    setBuildingModelLoaded: (loaded) => set({ buildingModelLoaded: loaded }),
+```
+
+---
+
+Now, let's update the `LightingFixtures.tsx` component to properly use the new `setTransforming` function:
+
+---
+
+```diff
+    const buildingModelLoaded = useSceneStore(state => state.buildingModelLoaded);
+    const setGlobalDragging = useSceneStore(state => state.setDragging);
++   const setTransforming = useSceneStore(state => state.setTransforming);
+    const { scene } = useThree();
+    const [scaleFactor, setScaleFactor] = useState(1.0);
+            onUpdate={(updates) => updateFixture(fixture.id, updates)}
+            setGlobalDragging={setGlobalDragging}
++           setTransforming={setTransforming}
+            scaleFactor={scaleFactor}
+            transformMode={selectedFixtureId === fixture.id ? transformMode : undefined}
+    onUpdate: (updates: Partial<Omit<LightFixture, 'id'>>) => void;
+    setGlobalDragging: (isDragging: boolean) => void;
++   setTransforming: (isTransforming: boolean) => void;
+    scaleFactor: number;
+    transformMode?: 'translate' | 'rotate' | 'scale';
+    onUpdate,
+    setGlobalDragging,
++   setTransforming,
+    scaleFactor,
+    transformMode
+            onChange={handleTransformChange}
+            onMouseDown={() => {
+-             // Set dragging to true when transform controls are first interacted with
+-             setGlobalDragging(true);
++             // Set transforming to true when transform controls are first interacted with
++             setTransforming(true);
+            }}
+            onMouseUp={() => {
+-             // Set dragging to false when transform controls interaction ends
+-             setGlobalDragging(false);
++             // Set transforming to false when transform controls interaction ends
++             setTransforming(false);
+            }}
+            onObjectChange={handleTransformChange}
++           
++           // Add property to disable raycasting on helpers, preventing hover state changes
++           raycast={null}
+          />
+        )}
+```
+
+---
+
+Let's fix that linter error by removing the `raycast={null}` property which is causing an issue:
+
+---
+
+```diff
+            }}
+            onObjectChange={handleTransformChange}
+-           
+-           // Add property to disable raycasting on helpers, preventing hover state changes
+-           raycast={null}
+          />
+        )}
+```
+
+---
+
+Let's add a small check in the transform control event handling to avoid creating too many states:
+
+---
+
+```diff
+- import React, { useRef, useEffect, useState } from 'react';
++ import React, { useRef, useEffect, useState, useCallback } from 'react';
+  import { useSceneStore, LightFixture } from '../store/sceneStore';
+  import { useThree } from '@react-three/fiber';
+    const [time, setTime] = useState(0);
+    const orbitControlsRef = useThree(state => state.controls);
++   const [isActuallyTransforming, setIsActuallyTransforming] = useState(false);
++   const transformingTimerRef = useRef<NodeJS.Timeout | null>(null);
+    
+    // Sync local dragging state with global state
+    }, [orbitControlsRef, isSelected, transformMode]);
+    
+-   // Handle transform control changes
+-   const handleTransformChange = () => {
+-     if (groupRef.current) {
++   // Improved transform handlers with debounce
++   const handleTransformMouseDown = useCallback(() => {
++     // Clear any existing timer
++     if (transformingTimerRef.current) {
++       clearTimeout(transformingTimerRef.current);
++       transformingTimerRef.current = null;
++     }
++     
++     // Only set transforming if it's an actual user interaction (not just hover)
++     setIsActuallyTransforming(true);
++     setTransforming(true);
++   }, [setTransforming]);
++   
++   const handleTransformMouseUp = useCallback(() => {
++     if (isActuallyTransforming) {
++       // Use a short delay to ensure all transform events are processed
++       transformingTimerRef.current = setTimeout(() => {
++         setTransforming(false);
++         setIsActuallyTransforming(false);
++       }, 100);
++     }
++   }, [isActuallyTransforming, setTransforming]);
++   
++   // Clean up timer on unmount
++   useEffect(() => {
++     return () => {
++       if (transformingTimerRef.current) {
++         clearTimeout(transformingTimerRef.current);
++       }
++     };
++   }, []);
++   
++   // Handle transform control changes - with debouncing
++   const handleTransformChange = useCallback(() => {
++     if (!groupRef.current || !isActuallyTransforming) return;
++     
+      // Update position, rotation, scale in the store based on the ref
+      const position = groupRef.current.position.clone();
+      
+      onUpdate({ position, rotation, scale });
+-     }
+-   };
++   }, [isActuallyTransforming, onUpdate]);
+    
+    // Animate the selected fixture
+            size={0.5}
+            onChange={handleTransformChange}
+-           onMouseDown={() => {
+-             // Set transforming to true when transform controls are first interacted with
+-             setTransforming(true);
+-           }}
+-           onMouseUp={() => {
+-             // Set transforming to false when transform controls interaction ends
+-             setTransforming(false);
+-           }}
++           onMouseDown={handleTransformMouseDown}
++           onMouseUp={handleTransformMouseUp}
+            onObjectChange={handleTransformChange}
+          />
+```
+
+---
+
+Let's fix the NodeJS.Timeout error:
+
+---
+
+```diff
+    const orbitControlsRef = useThree(state => state.controls);
+    const [isActuallyTransforming, setIsActuallyTransforming] = useState(false);
+-   const transformingTimerRef = useRef<NodeJS.Timeout | null>(null);
++   const transformingTimerRef = useRef<number | null>(null);
+    
+    // Sync local dragging state with global state
+```
+
+---
+
+Perfect! I've implemented several fixes to solve the history tracking issues:
+
+1. **Added Dedicated Transform State Tracking**:
+   - Created a new `isTransforming` state in the store
+   - Added a separate `setTransforming` function to handle transform operations properly
+   - Added checks to prevent recording history during both drag and transform operations
+
+2. **Fixed Unwanted History Entry Creation**:
+   - Modified `pushToHistory` to skip when dragging or transforming
+   - Added a check to prevent duplicate history entries
+   - Added a debounce mechanism for transform operations
+
+3. **Improved Transform Control Handling**:
+   - Added `isActuallyTransforming` state to distinguish between hover and actual transforms
+   - Used callback functions with proper dependency arrays for better performance
+   - Added cleanup for timeout references
+
+4. **Added Safeguards**:
+   - Used timeouts to ensure the final state is captured after operations complete
+   - Added checks to prevent unnecessary updates when no actual transformation is occurring
+
+These changes will ensure that:
+1. Selection no longer creates history entries
+2. Hovering over transform controls won't create history entries
+3. Only the start and end points of drag/transform operations create history entries
+4. The history index should increase exactly by 1 for each completed operation
+
+The history system should now work as expected, with clean transitions between meaningful states and no blank or intermediate states cluttering the history.
+
+---
+
+_**User**_
+
+cool. that part is working correctly now. I want adding a fixture to the scene to be a history state. for example, first i added a fixture moved it around till 5/5 but then when i added another fixture it still stayed at 5/5 when it shouldve been 6/6
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+I see the issue. When adding a fixture, we're pushing the state to history *before* the fixture is actually added, so we're storing the previous state. Let's fix this in the store:
+
+---
+
+```diff
+    // Actions
+    addFixture: (fixture) => {
+-     // Push current state to history before modification
+-     get().pushToHistory();
+-     
+-     set((state) => ({
+-       lightFixtures: [
+-         ...state.lightFixtures,
+-         { ...fixture, id: Math.random().toString(36).substring(2, 9) }
+-       ]
+-     }));
++     // We need to push the new state AFTER adding the fixture, not before
++     set((state) => {
++       const newFixture = { 
++         ...fixture, 
++         id: Math.random().toString(36).substring(2, 9) 
++       };
++       
++       return {
++         lightFixtures: [...state.lightFixtures, newFixture]
++       };
++     });
++     
++     // Push to history after the state has been updated
++     // Use setTimeout to ensure this runs after the state update is complete
++     setTimeout(() => {
++       get().pushToHistory();
++     }, 0);
+    },
+  
+```
+
+---
+
+Let's apply the same fix to `removeFixture` and `clearFixtures` to maintain consistency in how we handle history:
+
+---
+
 Cancelled
 
 ---

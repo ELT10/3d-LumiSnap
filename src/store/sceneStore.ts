@@ -108,25 +108,36 @@ export const useSceneStore = create<SceneState>((set, get) => ({
 
   // Actions
   addFixture: (fixture) => {
-    // Push current state to history before modification
-    get().pushToHistory();
+    // We need to push the new state AFTER adding the fixture, not before
+    set((state) => {
+      const newFixture = { 
+        ...fixture, 
+        id: Math.random().toString(36).substring(2, 9) 
+      };
+      
+      return {
+        lightFixtures: [...state.lightFixtures, newFixture]
+      };
+    });
     
-    set((state) => ({
-      lightFixtures: [
-        ...state.lightFixtures,
-        { ...fixture, id: Math.random().toString(36).substring(2, 9) }
-      ]
-    }));
+    // Push to history after the state has been updated
+    // Use setTimeout to ensure this runs after the state update is complete
+    setTimeout(() => {
+      get().pushToHistory();
+    }, 0);
   },
 
   removeFixture: (id) => {
-    // Push current state to history before modification
-    get().pushToHistory();
-    
+    // Apply the change first
     set((state) => ({
       lightFixtures: state.lightFixtures.filter(fixture => fixture.id !== id),
       selectedFixtureId: state.selectedFixtureId === id ? null : state.selectedFixtureId
     }));
+    
+    // Then push to history after the state has been updated
+    setTimeout(() => {
+      get().pushToHistory();
+    }, 0);
   },
 
   updateFixture: (id, updates) => {
@@ -189,13 +200,16 @@ export const useSceneStore = create<SceneState>((set, get) => ({
   
   // Clear all fixtures and push to history
   clearFixtures: () => {
-    // Push current state to history before modification
-    get().pushToHistory();
-    
+    // Apply the change first
     set({ 
       lightFixtures: [],
       selectedFixtureId: null
     });
+    
+    // Then push to history after the state has been updated
+    setTimeout(() => {
+      get().pushToHistory();
+    }, 0);
   },
   
   // Undo action

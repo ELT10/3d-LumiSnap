@@ -57,4 +57,34 @@ canvas {
   position: absolute;
   pointer-events: none;
   z-index: 100;
+}
+
+/* Stats panel positioning */
+.stats-panel {
+  position: fixed !important;
+  bottom: 0 !important;
+  top: auto !important;
+  left: 0 !important;
+  z-index: 1000;
+}
+
+.stats-panel > div {
+  position: relative !important;
+}
+
+/* Override drei Stats default positioning */
+.scene-container .stats > div {
+  position: relative !important;
+  top: auto !important;
+  right: auto !important;
+}
+
+/* Optional: make the stats panel slightly transparent for less visual interference */
+.scene-container .stats > div > div {
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.scene-container .stats > div > div:hover {
+  opacity: 1;
 } 

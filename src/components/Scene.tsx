@@ -236,7 +236,12 @@ const Scene = ({ showStats = true, environmentPreset = 'night' }: SceneProps) =>
         }}
         onClick={handleBackgroundClick}
       >
-        {showStats && <Stats />}
+        {showStats && (
+          <Stats 
+            className="stats-panel"
+            showPanel={0} // 0: fps, 1: ms, 2: mb, 3+: custom
+          />
+        )}
         
         <Suspense fallback={null}>
           <Environment preset={environmentPreset} background />

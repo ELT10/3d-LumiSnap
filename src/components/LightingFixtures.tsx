@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useSceneStore, LightFixture } from '../store/sceneStore';
 import { useThree } from '@react-three/fiber';
 import { TransformControls } from '@react-three/drei';
@@ -18,6 +18,8 @@ export const LightingFixtures: React.FC<LightingFixturesProps> = ({ transformMod
   const selectFixture = useSceneStore(state => state.selectFixture);
   const updateFixture = useSceneStore(state => state.updateFixture);
   const buildingModelLoaded = useSceneStore(state => state.buildingModelLoaded);
+  const setGlobalDragging = useSceneStore(state => state.setDragging);
+  const setTransforming = useSceneStore(state => state.setTransforming);
   const { scene } = useThree();
   const [scaleFactor, setScaleFactor] = useState(1.0);
   
@@ -68,6 +70,8 @@ export const LightingFixtures: React.FC<LightingFixturesProps> = ({ transformMod
           isSelected={fixture.id === selectedFixtureId}
           onSelect={() => selectFixture(fixture.id)} 
           onUpdate={(updates) => updateFixture(fixture.id, updates)}
+          setGlobalDragging={setGlobalDragging}
+          setTransforming={setTransforming}
           scaleFactor={scaleFactor}
           transformMode={selectedFixtureId === fixture.id ? transformMode : undefined}
         />
@@ -81,6 +85,8 @@ interface FixtureInstanceProps {
   isSelected: boolean;
   onSelect: () => void;
   onUpdate: (updates: Partial<Omit<LightFixture, 'id'>>) => void;
+  setGlobalDragging: (isDragging: boolean) => void;
+  setTransforming: (isTransforming: boolean) => void;
   scaleFactor: number;
   transformMode?: 'translate' | 'rotate' | 'scale';
 }
@@ -90,6 +96,8 @@ const FixtureInstance = ({
   isSelected, 
   onSelect, 
   onUpdate,
+  setGlobalDragging,
+  setTransforming,
   scaleFactor,
   transformMode
 }: FixtureInstanceProps) => {
@@ -97,11 +105,19 @@ const FixtureInstance = ({
   const spotlightRef = useRef<THREE.SpotLight>(null);
   const spotlightTargetRef = useRef<THREE.Object3D>(new THREE.Object3D());
   const { camera, raycaster } = useThree();
-  const [isDragging, setIsDragging] = useState(false);
+  // Use local state to track UI state, but sync with global state for history
+  const [isDragging, setLocalDragging] = useState(false);
   const [iesData, setIESData] = useState<any>(null);
   const { loadIESProfile } = useIESLoader();
   const [time, setTime] = useState(0);
   const orbitControlsRef = useThree(state => state.controls);
+  const [isActuallyTransforming, setIsActuallyTransforming] = useState(false);
+  const transformingTimerRef = useRef<number | null>(null);
+  
+  // Sync local dragging state with global state
+  useEffect(() => {
+    setGlobalDragging(isDragging);
+  }, [isDragging, setGlobalDragging]);
   
   // Apply the building-based scale factor and increase size if selected
   const baseScale = scaleFactor;
@@ -169,17 +185,49 @@ const FixtureInstance = ({
     }
   }, [orbitControlsRef, isSelected, transformMode]);
   
-  // Handle transform control changes
-  const handleTransformChange = () => {
-    if (groupRef.current) {
-      // Update position, rotation, scale in the store based on the ref
-      const position = groupRef.current.position.clone();
-      const rotation = new THREE.Euler().copy(groupRef.current.rotation);
-      const scale = groupRef.current.scale.clone();
-      
-      onUpdate({ position, rotation, scale });
+  // Improved transform handlers with debounce
+  const handleTransformMouseDown = useCallback(() => {
+    // Clear any existing timer
+    if (transformingTimerRef.current) {
+      clearTimeout(transformingTimerRef.current);
+      transformingTimerRef.current = null;
     }
-  };
+    
+    // Only set transforming if it's an actual user interaction (not just hover)
+    setIsActuallyTransforming(true);
+    setTransforming(true);
+  }, [setTransforming]);
+  
+  const handleTransformMouseUp = useCallback(() => {
+    if (isActuallyTransforming) {
+      // Use a short delay to ensure all transform events are processed
+      transformingTimerRef.current = setTimeout(() => {
+        setTransforming(false);
+        setIsActuallyTransforming(false);
+      }, 100);
+    }
+  }, [isActuallyTransforming, setTransforming]);
+  
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (transformingTimerRef.current) {
+        clearTimeout(transformingTimerRef.current);
+      }
+    };
+  }, []);
+  
+  // Handle transform control changes - with debouncing
+  const handleTransformChange = useCallback(() => {
+    if (!groupRef.current || !isActuallyTransforming) return;
+    
+    // Update position, rotation, scale in the store based on the ref
+    const position = groupRef.current.position.clone();
+    const rotation = new THREE.Euler().copy(groupRef.current.rotation);
+    const scale = groupRef.current.scale.clone();
+    
+    onUpdate({ position, rotation, scale });
+  }, [isActuallyTransforming, onUpdate]);
   
   // Animate the selected fixture
   useEffect(() => {
@@ -220,7 +268,7 @@ const FixtureInstance = ({
   const handlePointerDown = (e: any) => {
     if (isSelected && !transformMode) {
       e.stopPropagation();
-      setIsDragging(true);
+      setLocalDragging(true);
       
       // Set pointer capture on the DOM element
       (e.target as any).setPointerCapture(e.pointerId);
@@ -256,7 +304,7 @@ const FixtureInstance = ({
   const handlePointerUp = (e: any) => {
     if (isDragging) {
       e.stopPropagation();
-      setIsDragging(false);
+      setLocalDragging(false);
       
       // Release pointer capture
       if (e.target) {
@@ -275,6 +323,7 @@ const FixtureInstance = ({
     ? new THREE.Color(0xff7700).multiplyScalar(pulseValue)
     : fixture.color.clone().multiplyScalar(0.3);
   
+  // Return JSX with TransformControls
   return (
     <>
       <group 
@@ -306,51 +355,50 @@ const FixtureInstance = ({
         
         {/* Add a glow sphere around selected fixtures */}
         {isSelected && !transformMode && (
-          <mesh scale={[0.3 * baseScale, 0.3 * baseScale, 0.3 * baseScale]}>
-            <sphereGeometry args={[1, 16, 16]} />
+          <mesh scale={visualScale * 1.4}>
+            <sphereGeometry args={[0.2, 16, 16]} />
             <meshBasicMaterial 
               color={0xff7700} 
-              transparent={true} 
-              opacity={0.15 + 0.1 * Math.sin(time * 3)}
+              transparent 
+              opacity={0.15} 
+              depthWrite={false}
             />
           </mesh>
         )}
         
-        {/* Light source - now properly scaled and oriented with the fixture */}
-        {iesData ? (
+        {/* Spotlight for lighting effects */}
+        <spotLight 
+          ref={spotlightRef}
+          position={[0, 0, 0]}
+          color={fixture.color}
+          intensity={scaledIntensity}
+          distance={20 * Math.max(0.5, fixture.scale.x)}
+          angle={Math.PI / 4}
+          penumbra={0.3}
+          castShadow
+        />
+        
+        {/* Use specialized IES light if data is available */}
+        {iesData && (
           <IESLight 
+            position={[0, 0, 0]}
             iesData={iesData}
-            position={[0, 0, 0]}
-            color={fixture.color} 
-            intensity={scaledIntensity * 2} // Double the intensity for better visibility
-            distance={20 * fixture.scale.x} // Increase the range
-            castShadow={true} // Always enable shadows
-            target={spotlightTargetRef.current}
-          />
-        ) : (
-          <spotLight
-            ref={spotlightRef}
-            position={[0, 0, 0]}
+            intensity={scaledIntensity * 0.5}
             color={fixture.color}
-            intensity={scaledIntensity * 2} // Double the intensity for better visibility
-            angle={Math.PI / 4} // Wider angle for more coverage
-            penumbra={0.3}
-            distance={20 * fixture.scale.x} // Increase the range
-            castShadow={true} // Always enable shadows
-            shadow-mapSize-width={1024}
-            shadow-mapSize-height={1024}
           />
         )}
       </group>
-      
+
       {/* Transform controls - only shown when fixture is selected and a transform mode is active */}
       {isSelected && transformMode && groupRef.current && (
         <TransformControls
           object={groupRef.current}
           mode={transformMode}
-          size={0.8}
+          size={0.5}
+          onChange={handleTransformChange}
+          onMouseDown={handleTransformMouseDown}
+          onMouseUp={handleTransformMouseUp}
           onObjectChange={handleTransformChange}
-          onMouseUp={handleTransformChange}
         />
       )}
     </>

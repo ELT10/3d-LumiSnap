@@ -1,0 +1,79 @@
+.keyboard-shortcuts {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: rgba(30, 30, 30, 0.9);
+  color: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  font-size: 14px;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: fade-in 0.2s ease;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.keyboard-shortcuts h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: #fff;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 8px;
+}
+
+.shortcuts-grid {
+  display: flex;
+  gap: 24px;
+}
+
+.shortcut-group {
+  min-width: 120px;
+}
+
+.shortcut-group h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: #3498db;
+  font-weight: 500;
+}
+
+.shortcut-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 13px;
+  gap: 12px;
+}
+
+.key-combo {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+kbd {
+  display: inline-block;
+  padding: 2px 5px;
+  font-family: monospace;
+  line-height: 1;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 12px;
+  white-space: nowrap;
+} 

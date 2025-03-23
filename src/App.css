@@ -88,31 +88,105 @@ body, html {
   padding: 8px 12px;
   border-radius: 4px;
   max-width: 400px;
+  pointer-events: auto;
+}
+
+/* Controls buttons container */
+.controls-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+/* Shared button styling */
+.control-button {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.control-button:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.control-button:active:not(:disabled) {
+  transform: translateY(1px);
+  filter: brightness(0.9);
+}
+
+.control-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Button icon styling */
+.button-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+/* Undo button specific styling */
+.undo-button {
+  background-color: #3498db;
+  color: white;
+}
+
+/* Redo button specific styling */
+.redo-button {
+  background-color: #2ecc71;
+  color: white;
+}
+
+/* Deselect button specific styling */
+.deselect-button {
+  background-color: #ff7700;
+  color: white;
+}
+
+/* History status indicator */
+.history-status {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.history-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #3498db;
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
 }
 
 /* Make sure imports work */
 @import './components/Scene.css';
 @import './components/FixturePanel.css';
-
-/* Add button styling */
-.deselect-button {
-  margin-top: 10px;
-  padding: 8px 12px;
-  background-color: #ff7700;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  transition: background-color 0.2s;
-}
-
-.deselect-button:hover {
-  background-color: #ff9040;
-}
-
-.deselect-button:active {
-  background-color: #e56600;
-  transform: translateY(1px);
-}

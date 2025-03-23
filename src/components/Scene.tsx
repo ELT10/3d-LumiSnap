@@ -225,7 +225,8 @@ const Scene = ({ showStats = true, environmentPreset = 'night' }: SceneProps) =>
       <Canvas
         shadows
         camera={{
-          position: [-100, 60, 100],
+          // position: [-100, 60, 100],
+          position: [10, 10, 30],
           fov: 45,
           near: 0.1,
           far: 1000

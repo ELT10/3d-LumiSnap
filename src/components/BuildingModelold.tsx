@@ -4,7 +4,7 @@ import { useSceneStore } from '../store/sceneStore';
 import { Mesh, Group, MeshStandardMaterial } from 'three';
 
 // Use the new house model
-const DEFAULT_MODEL_PATH = '/models/house2/house.glb';
+const DEFAULT_MODEL_PATH = '/models/house1/result.gltf';
 
 interface BuildingModelProps {
   modelPath?: string;
@@ -64,8 +64,8 @@ export const BuildingModel = ({ modelPath = DEFAULT_MODEL_PATH }: BuildingModelP
         
         // Position and scale the building appropriately
         // Adjust position to center the model and place it on the ground
-        group.current.position.set(0, 0, 0);
-        group.current.scale.set(1, 1, 1);
+        group.current.position.set(0, -20, 0);
+        group.current.scale.set(0.8, 0.8, 0.8); 
         
         // Mark the building as loaded in the store
         setBuildingModelLoaded(true);

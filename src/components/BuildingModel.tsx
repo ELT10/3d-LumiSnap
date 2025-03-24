@@ -4,7 +4,7 @@ import { useSceneStore } from '../store/sceneStore';
 import { Mesh, Group, MeshStandardMaterial } from 'three';
 
 // Use the new house model
-const DEFAULT_MODEL_PATH = '/models/house2/house.glb';
+const DEFAULT_MODEL_PATH = '/models/house3/house.glb';
 
 interface BuildingModelProps {
   modelPath?: string;

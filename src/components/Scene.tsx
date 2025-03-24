@@ -2,7 +2,8 @@ import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls, Stats, Environment } from '@react-three/drei';
 import { Suspense, useEffect, useState, useRef, useCallback } from 'react';
 import * as THREE from 'three';
-import { LightingFixtures, BuildingModel, FixturePreview } from '.';
+import { LightingFixtures, FixturePreview } from '.';
+import { BuildingModel } from './BuildingModel';
 import { useSceneStore } from '../store/sceneStore';
 import { useSurfaceStore } from '../store/surfaceStore';
 import { FixturePropertiesPanel } from './FixturePropertiesPanel';
@@ -269,17 +270,20 @@ const Scene = ({ showStats = true, environmentPreset = 'night' }: SceneProps) =>
         }}
         gl={{
           antialias: true,
-          alpha: true,
+          alpha: false,
           preserveDrawingBuffer: true, // Needed for taking screenshots
           logarithmicDepthBuffer: true // Helps with z-fighting
         }}
         onClick={handleBackgroundClick}
       >
+        {/* Scene background */}
+        <color attach="background" args={[0x222222]} />
+        
         {/* Environment lighting */}
-        <Environment preset={environmentPreset} background={false} />
+        <Environment preset={environmentPreset} background={true} />
         
         {/* Ambient light */}
-        <ambientLight intensity={0.2} />
+        <ambientLight intensity={0.4} />
         
         {/* Orbit controls */}
         <OrbitControls 

@@ -99,8 +99,18 @@ export class IESLoader {
       lineIndex++;
     }
     
+    // Check if TILT= was found
+    if (lineIndex >= lines.length) {
+      throw new Error('Invalid IES format: TILT= not found');
+    }
+    
     // Skip TILT line
     lineIndex++;
+    
+    // Check if we have enough lines
+    if (lineIndex >= lines.length) {
+      throw new Error('Invalid IES format: unexpected end of file after TILT=');
+    }
     
     // Parse lamp count, lumens per lamp, multiplier, number of vertical angles, 
     // number of horizontal angles, photometric type, unit type, width/length/height
@@ -123,8 +133,21 @@ export class IESLoader {
     
     const totalLumens = lampCount * lumensPerLamp;
     
-    // Skip metadata lines
-    lineIndex += 3;
+    // Skip metadata lines - be flexible about how many to skip
+    // Some IES files have 1 line, some have 3, we'll check for numeric values
+    while (lineIndex < lines.length) {
+      const nextLine = lines[lineIndex];
+      // If the next line contains vertical angle values (should be numeric), break out
+      if (/^[\s\d.-]+$/.test(nextLine) && nextLine.split(/\s+/).filter(Boolean).length > 0) {
+        break;
+      }
+      lineIndex++;
+    }
+    
+    // Check if we have enough lines for vertical angles
+    if (lineIndex >= lines.length) {
+      throw new Error('Invalid IES format: unexpected end of file before vertical angles');
+    }
     
     // Parse vertical angles
     const verticalAngles: number[] = [];
@@ -133,6 +156,10 @@ export class IESLoader {
     
     for (let i = 0; i < verticalAnglesCount; i++) {
       if (currentIndex >= currentLine.length) {
+        // Check if we have more lines
+        if (lineIndex >= lines.length) {
+          throw new Error(`Invalid IES format: unexpected end of file while parsing vertical angles (got ${verticalAngles.length} of ${verticalAnglesCount})`);
+        }
         currentLine = lines[lineIndex++].trim().split(/\s+/).map(Number);
         currentIndex = 0;
       }
@@ -142,12 +169,20 @@ export class IESLoader {
     // Parse horizontal angles
     const horizontalAngles: number[] = [];
     if (currentIndex >= currentLine.length) {
+      // Check if we have more lines
+      if (lineIndex >= lines.length) {
+        throw new Error('Invalid IES format: unexpected end of file before horizontal angles');
+      }
       currentLine = lines[lineIndex++].trim().split(/\s+/).map(Number);
       currentIndex = 0;
     }
     
     for (let i = 0; i < horizontalAnglesCount; i++) {
       if (currentIndex >= currentLine.length) {
+        // Check if we have more lines
+        if (lineIndex >= lines.length) {
+          throw new Error(`Invalid IES format: unexpected end of file while parsing horizontal angles (got ${horizontalAngles.length} of ${horizontalAnglesCount})`);
+        }
         currentLine = lines[lineIndex++].trim().split(/\s+/).map(Number);
         currentIndex = 0;
       }
@@ -163,6 +198,10 @@ export class IESLoader {
       
       for (let v = 0; v < verticalAnglesCount; v++) {
         if (currentIndex >= currentLine.length) {
+          // Check if we have more lines
+          if (lineIndex >= lines.length) {
+            throw new Error(`Invalid IES format: unexpected end of file while parsing candela values (h=${h}, v=${v})`);
+          }
           currentLine = lines[lineIndex++].trim().split(/\s+/).map(Number);
           currentIndex = 0;
         }

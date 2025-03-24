@@ -1,7 +1,9 @@
 import { useRef, useEffect } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { useSceneStore } from '../store/sceneStore';
-import { Mesh, Group, MeshStandardMaterial } from 'three';
+import { Mesh, Group, MeshStandardMaterial, Vector3, Box3 } from 'three';
+import { calculateBoundingBox } from '../utils/sceneUtils';
+import { useThree } from '@react-three/fiber';
 
 // Use the new house model
 const DEFAULT_MODEL_PATH = '/models/house3/house.glb';
@@ -12,13 +14,14 @@ interface BuildingModelProps {
 
 export const BuildingModel = ({ modelPath = DEFAULT_MODEL_PATH }: BuildingModelProps) => {
   const group = useRef<Group>(null);
+  const { camera, controls } = useThree();
   const setBuildingModelLoaded = useSceneStore(state => state.setBuildingModelLoaded);
   
   // Use Suspense with useGLTF to handle loading
   const { scene: model } = useGLTF(modelPath);
   
   useEffect(() => {
-    if (model) {
+    if (model && group.current) {
       // Clone the model to avoid modifying the cached original
       const modelClone = model.clone();
       
@@ -52,24 +55,65 @@ export const BuildingModel = ({ modelPath = DEFAULT_MODEL_PATH }: BuildingModelP
         }
       });
       
-      // Add the model to our group ref
-      if (group.current) {
-        // Clear any previous models
-        while (group.current.children.length > 0) {
-          group.current.remove(group.current.children[0]);
-        }
-        
-        // Add the new model
-        group.current.add(modelClone);
-        
-        // Position and scale the building appropriately
-        // Adjust position to center the model and place it on the ground
-        group.current.position.set(0, 0, 0);
-        group.current.scale.set(1, 1, 1);
-        
-        // Mark the building as loaded in the store
-        setBuildingModelLoaded(true);
+      // Clear any previous models
+      while (group.current.children.length > 0) {
+        group.current.remove(group.current.children[0]);
       }
+      
+      // Add the new model
+      group.current.add(modelClone);
+      
+      // Explicitly position group at origin
+      group.current.position.set(0, 0, 0);
+      
+      // Calculate bounding box of the model
+      const bbox = calculateBoundingBox(modelClone);
+      const center = new Vector3();
+      const size = new Vector3();
+      bbox.getCenter(center);
+      bbox.getSize(size);
+      
+      // Auto-scale the model (without changing position)
+      const maxDim = Math.max(size.x, size.z); // Use x and z for horizontal dimensions
+      const scale = 20 / maxDim; // Scale to size 20
+      modelClone.scale.set(scale, scale, scale);
+      
+      // Recalculate bounding box after scaling
+      const scaledBbox = calculateBoundingBox(modelClone);
+      const scaledSize = new Vector3();
+      scaledBbox.getSize(scaledSize);
+      
+      // Position the model so its base is on the grid
+      // First, recalculate the center after scaling
+      const scaledCenter = new Vector3();
+      scaledBbox.getCenter(scaledCenter);
+      
+      // Move the model so that:
+      // 1. Its bottom is at y=0 (grid level)
+      // 2. It's centered horizontally at x=0, z=0
+      modelClone.position.set(
+        -scaledCenter.x,
+        -scaledBbox.min.y,
+        -scaledCenter.z
+      );
+      
+      // Position camera for a good view
+      const distance = Math.max(scaledSize.x, scaledSize.z) * 1.5;
+      camera.position.set(distance, distance * 0.6, distance);
+      camera.lookAt(0, scaledSize.y / 2, 0); // Look at the middle of the building
+      
+      // Update orbit controls target
+      if (controls && typeof controls === 'object') {
+        const orbitControls = controls as any;
+        if (orbitControls.target) {
+          // Set orbit controls target to the middle of the building
+          orbitControls.target.set(0, scaledSize.y / 2, 0);
+        }
+      }
+      
+      // Mark the building as loaded in the store
+      setBuildingModelLoaded(true);
+      
     }
     
     // Clean up function
@@ -80,10 +124,10 @@ export const BuildingModel = ({ modelPath = DEFAULT_MODEL_PATH }: BuildingModelP
         }
       }
     };
-  }, [model, setBuildingModelLoaded]);
+  }, [model, setBuildingModelLoaded, camera, controls]);
   
   return (
-    <group ref={group} />
+    <group ref={group} position={[0, 0, 0]} />
   );
 };
 

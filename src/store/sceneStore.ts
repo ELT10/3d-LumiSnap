@@ -53,23 +53,13 @@ type SceneState = {
   canUndo: () => boolean;
   canRedo: () => boolean;
   pushToHistory: () => void;
+  
+  // Helpers
+  repositionSampleFixture: () => void; // New action to reposition the sample fixture after building loads
 };
 
 export const useSceneStore = create<SceneState>((set, get) => ({
-  lightFixtures: [
-    {
-      id: "sample1",
-      type: "spotlight",
-      position: new THREE.Vector3(0, 3, 0),
-      rotation: new THREE.Euler(0, 0, 0),
-      scale: new THREE.Vector3(1, 1, 1),
-      intensity: 1.5,
-      color: new THREE.Color(0xffffff),
-      iesProfile: "/ies/spot.ies",
-      name: "Sample Light",
-      manufacturer: "Demo"
-    }
-  ],
+  lightFixtures: [],
   selectedFixtureId: null,
   copiedFixtureId: null,
   isDragging: false,
@@ -348,6 +338,11 @@ export const useSceneStore = create<SceneState>((set, get) => ({
   canRedo: () => {
     const state = get();
     return state.historyIndex < state.history.length - 1;
+  },
+  
+  // Helper to reposition the sample fixture after building is loaded
+  repositionSampleFixture: () => {
+    // No need to do anything since we're not using sample fixtures anymore
   }
 }));
 

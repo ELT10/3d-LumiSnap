@@ -9,6 +9,7 @@ import { useSurfaceStore } from '../store/surfaceStore';
 import { FixturePropertiesPanel } from './FixturePropertiesPanel';
 import DuplicationPreview from './DuplicationPreview';
 import DuplicationHelper from './DuplicationHelper';
+import CameraController from './CameraController';
 import './Scene.css';
 
 type SceneProps = {
@@ -263,7 +264,7 @@ const Scene = ({ showStats = true, environmentPreset = 'night' }: SceneProps) =>
       <Canvas
         shadows
         camera={{
-          position: [10, 10, 30],
+          position: [30, 15, 30], // Start with a better position
           fov: 45,
           near: 0.1,
           far: 1000
@@ -285,6 +286,9 @@ const Scene = ({ showStats = true, environmentPreset = 'night' }: SceneProps) =>
         {/* Ambient light */}
         <ambientLight intensity={0.4} />
         
+        {/* Debug camera positioning - use only for debugging */}
+        <CameraController />
+        
         {/* Orbit controls */}
         <OrbitControls 
           ref={orbitControlsRef}
@@ -292,15 +296,26 @@ const Scene = ({ showStats = true, environmentPreset = 'night' }: SceneProps) =>
           enableDamping={true}
           dampingFactor={0.05}
           rotateSpeed={0.5}
-          maxPolarAngle={Math.PI * 0.45} // Prevent going below ground
+          maxPolarAngle={Math.PI * 1} // Prevent going below ground
           minDistance={2}
           maxDistance={200}
+          makeDefault
         />
+        
+        {/* Helper grid for orientation */}
+        <gridHelper 
+          args={[100, 100, 0x444444, 0x222222]} 
+          position={[0, 0, 0]} 
+          rotation={[0, 0, 0]}
+        />
+        
+        {/* Scene axis helper for orientation */}
+        {/* <axesHelper args={[5]} /> */}
         
         {/* Surface detector for placing fixtures */}
         <SurfaceDetector containerRef={canvasRef} />
         
-        {/* Building model */}
+        {/* Building model at the center of scene */}
         <Suspense fallback={null}>
           <BuildingModel />
         </Suspense>
@@ -312,8 +327,8 @@ const Scene = ({ showStats = true, environmentPreset = 'night' }: SceneProps) =>
         {isDragging && currentHit && (
           <FixturePreview 
             position={currentHit.position} 
-            normal={currentHit.normal} 
-            surfaceType={currentHit.surfaceType} 
+            normal={currentHit.normal}
+            surfaceType={currentHit.surfaceType}
           />
         )}
         

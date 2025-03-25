@@ -63,6 +63,7 @@ export const FixturePanel: React.FC = () => {
   // State for project modal
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [projectModalMode, setProjectModalMode] = useState<'save' | 'load'>('save');
+  const [isCollapsed, setIsCollapsed] = useState(false);
   
   // Filter fixtures based on search term
   const filteredFixtures = fixtures.filter(fixture => 
@@ -123,7 +124,15 @@ export const FixturePanel: React.FC = () => {
   };
   
   return (
-    <div className="fixture-panel">
+    <div className={`fixture-panel ${isCollapsed ? 'collapsed' : ''}`}>
+      <button 
+        className="collapse-toggle" 
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        title={isCollapsed ? "Expand panel" : "Collapse panel"}
+      >
+        {isCollapsed ? '←' : '→'}
+      </button>
+      
       <div className="fixture-panel-header">
         <h2>Lighting Fixtures</h2>
         <div className="project-buttons">
@@ -136,81 +145,83 @@ export const FixturePanel: React.FC = () => {
         </div>
       </div>
       
-      <div className="search-container">
-        <input 
-          type="text"
-          placeholder="Search fixtures..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="search-input"
-        />
-      </div>
-      
-      <div className="fixtures-list">
-        {filteredFixtures.map(fixture => (
-          <div 
-            key={fixture.id}
-            className="fixture-item"
-            draggable
-            onDragStart={(e) => handleDragStart(e, fixture)}
-            onDragEnd={handleDragEnd}
-            onClick={() => handleAddFixture(fixture)}
-          >
-            <div className="fixture-thumbnail">
-              {fixture.thumbnail ? (
-                <img src={fixture.thumbnail} alt={fixture.name} />
-              ) : (
-                <div className="thumbnail-placeholder">{fixture.name[0]}</div>
-              )}
-            </div>
-            <div className="fixture-info">
-              <div className="fixture-name">{fixture.name}</div>
-              <div className="fixture-manufacturer">{fixture.manufacturer}</div>
-            </div>
-          </div>
-        ))}
+      <div className="panel-content">
+        <div className="search-container">
+          <input 
+            type="text"
+            placeholder="Search fixtures..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
+        </div>
         
-        {filteredFixtures.length === 0 && (
-          <div className="no-fixtures">
-            No fixtures found matching "{searchTerm}"
-          </div>
-        )}
-      </div>
-      
-      {/* Active fixtures section with delete buttons */}
-      <div className="active-fixtures-section">
-        <h3>Scene Fixtures</h3>
-        <div className="active-fixtures-list">
-          {lightFixtures.length > 0 ? (
-            lightFixtures.map(fixture => (
-              <div 
-                key={fixture.id} 
-                className={`active-fixture-item ${selectedFixtureId === fixture.id ? 'selected' : ''}`}
-                onClick={() => selectFixture(fixture.id)}
-              >
-                <div className="fixture-info">
-                  <div className="fixture-name">{fixture.name}</div>
-                  <div className="fixture-type">{fixture.type}</div>
-                </div>
-                <div className="fixture-controls">
-                  <button 
-                    className="fixture-delete-button"
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent triggering the parent onClick
-                      handleDeleteFixture(fixture.id);
-                    }}
-                    title="Delete Fixture"
-                  >
-                    ×
-                  </button>
-                </div>
+        <div className="fixtures-list">
+          {filteredFixtures.map(fixture => (
+            <div 
+              key={fixture.id}
+              className="fixture-item"
+              draggable
+              onDragStart={(e) => handleDragStart(e, fixture)}
+              onDragEnd={handleDragEnd}
+              onClick={() => handleAddFixture(fixture)}
+            >
+              <div className="fixture-thumbnail">
+                {fixture.thumbnail ? (
+                  <img src={fixture.thumbnail} alt={fixture.name} />
+                ) : (
+                  <div className="thumbnail-placeholder">{fixture.name[0]}</div>
+                )}
               </div>
-            ))
-          ) : (
-            <div className="no-active-fixtures">
-              No fixtures in scene
+              <div className="fixture-info">
+                <div className="fixture-name">{fixture.name}</div>
+                <div className="fixture-manufacturer">{fixture.manufacturer}</div>
+              </div>
+            </div>
+          ))}
+          
+          {filteredFixtures.length === 0 && (
+            <div className="no-fixtures">
+              No fixtures found matching "{searchTerm}"
             </div>
           )}
+        </div>
+        
+        {/* Active fixtures section with delete buttons */}
+        <div className="active-fixtures-section">
+          <h3>Scene Fixtures</h3>
+          <div className="active-fixtures-list">
+            {lightFixtures.length > 0 ? (
+              lightFixtures.map(fixture => (
+                <div 
+                  key={fixture.id} 
+                  className={`active-fixture-item ${selectedFixtureId === fixture.id ? 'selected' : ''}`}
+                  onClick={() => selectFixture(fixture.id)}
+                >
+                  <div className="fixture-info">
+                    <div className="fixture-name">{fixture.name}</div>
+                    <div className="fixture-type">{fixture.type}</div>
+                  </div>
+                  <div className="fixture-controls">
+                    <button 
+                      className="fixture-delete-button"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent triggering the parent onClick
+                        handleDeleteFixture(fixture.id);
+                      }}
+                      title="Delete Fixture"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="no-active-fixtures">
+                No fixtures in scene
+              </div>
+            )}
+          </div>
         </div>
       </div>
       

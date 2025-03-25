@@ -1,7 +1,8 @@
 .fixture-panel {
-  position: absolute;
-  top: 0;
-  right: 0;
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  left: auto !important;
   width: 300px;
   height: 100vh;
   background-color: #2a2a2a;
@@ -9,30 +10,136 @@
   display: flex;
   flex-direction: column;
   padding: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: -2px 0 4px rgba(0, 0, 0, 0.2);
   overflow-y: auto;
   z-index: 1000;
-  border-radius: 8px;
+  border-radius: 8px 0 0 8px;
   margin-bottom: 20px;
   max-height: 80vh;
+  transition: width 0.3s ease, padding 0.3s ease;
+  transform: none !important;
+}
+
+.collapse-toggle {
+  position: absolute;
+  top: 10px;
+  left: 15px;
+  background-color: #333;
+  color: #ffffff;
+  border: 1px solid #555;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  font-size: 16px;
+  padding: 0;
+  z-index: 1100;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.collapse-toggle:hover {
+  background-color: #444;
+  transform: scale(1.1);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+}
+
+.fixture-panel.collapsed {
+  width: 50px;
+  padding: 20px 10px;
+  overflow: visible;
+  right: 0 !important;
+  left: auto !important;
+  transform: none !important;
+}
+
+.fixture-panel.collapsed .panel-content {
+  display: none;
+}
+
+.fixture-panel.collapsed .project-buttons {
+  display: none;
+}
+
+.fixture-panel.collapsed .fixture-panel-header {
+  margin-top: 50px;
+}
+
+.fixture-panel.collapsed .collapse-toggle {
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #3d7ae5;
+  border-color: #2c5282;
+}
+
+.fixture-panel.collapsed .collapse-toggle:hover {
+  transform: translateX(-50%) scale(1.1);
+  background-color: #4d8af5;
 }
 
 .fixture-panel-header {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
   margin-bottom: 16px;
+  margin-top: 20px; /* Space for the collapse button */
+  width: 100%;
+  text-align: center;
+}
+
+.panel-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.collapse-button {
+  background-color: #333;
+  color: #ffffff;
+  border: 1px solid #555;
+  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  font-size: 16px;
+  padding: 0;
+}
+
+.collapse-button:hover {
+  background-color: #444;
+  transform: scale(1.05);
+}
+
+.fixture-panel.collapsed h2 {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+  margin: 20px 0;
+  text-align: center;
+  width: 100%;
 }
 
 .fixture-panel h2 {
   font-size: 18px;
-  margin: 0 0 5px 0;
+  margin: 0 0 12px 0;
   color: #ffffff;
+  width: 100%;
+  text-align: center;
 }
 
 .project-buttons {
   display: flex;
   gap: 8px;
+  margin-top: 5px;
+  justify-content: center;
+  width: 100%;
 }
 
 .project-button {

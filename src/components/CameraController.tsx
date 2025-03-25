@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useSceneStore } from '../store/sceneStore';
@@ -8,9 +8,8 @@ import { calculateBoundingBox } from '../utils/sceneUtils';
  * CameraController component handles automatic camera positioning and provides debug information
  */
 const CameraController = () => {
-  const { camera, scene, controls } = useThree();
+  const { camera, scene } = useThree();
   const buildingModelLoaded = useSceneStore(state => state.buildingModelLoaded);
-  const cameraPositionedRef = useRef(false);
   // Use a simple flag for debug mode instead of process.env
   const debugMode = true; // Set to false in production
   
@@ -27,7 +26,7 @@ const CameraController = () => {
   useEffect(() => {
     if (buildingModelLoaded && debugMode) {
       // Find the building model in the scene
-      let buildingModel: THREE.Object3D | undefined = undefined;
+      let buildingModel: THREE.Object3D | null = null;
       
       scene.traverse((object) => {
         if (object.userData?.type === 'building' && !buildingModel) {
@@ -43,7 +42,7 @@ const CameraController = () => {
       if (buildingModel) {
         // Debug building position
         const worldPosition = new THREE.Vector3();
-        buildingModel.getWorldPosition(worldPosition);
+        (buildingModel as THREE.Object3D).getWorldPosition(worldPosition);
         console.log('Building world position:', worldPosition);
           
         // Calculate and log bounding box info
@@ -60,7 +59,7 @@ const CameraController = () => {
           
         // Count building meshes for debugging
         let meshCount = 0;
-        buildingModel.traverse((child: THREE.Object3D) => {
+        (buildingModel as THREE.Object3D).traverse((child: THREE.Object3D) => {
           if (child.type === 'Mesh') {
             meshCount++;
           }

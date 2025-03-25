@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { useSceneStore } from '../store/sceneStore';
-import { Mesh, Group, MeshStandardMaterial, Vector3, Box3 } from 'three';
+import { Mesh, Group, MeshStandardMaterial, Vector3 } from 'three';
 import { calculateBoundingBox } from '../utils/sceneUtils';
 import { useThree } from '@react-three/fiber';
 

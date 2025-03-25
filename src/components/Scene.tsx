@@ -17,7 +17,7 @@ type SceneProps = {
   environmentPreset?: 'night' | 'apartment' | 'city' | 'dawn' | 'forest' | 'lobby' | 'park' | 'studio' | 'sunset' | 'warehouse';
 };
 
-const Scene = ({ showStats = true, environmentPreset = 'night' }: SceneProps) => {
+const Scene = ({ showStats = true, environmentPreset = 'sunset' }: SceneProps) => {
   const [isWebGLAvailable, setIsWebGLAvailable] = useState(true);
   const canvasRef = useRef<HTMLDivElement>(null);
   const orbitControlsRef = useRef<any>(null);

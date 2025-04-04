@@ -132,6 +132,16 @@ const KeyboardShortcuts = () => {
             <span>Paste at cursor position</span>
           </div>
         </div>
+        
+        <div className="shortcut-group">
+          <h4>View Controls</h4>
+          <div className="shortcut-item">
+            <span className="key-combo">
+              <kbd>H</kbd>
+            </span>
+            <span>Toggle fixture visibility</span>
+          </div>
+        </div>
       </div>
     </div>
   );

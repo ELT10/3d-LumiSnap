@@ -20,6 +20,7 @@ export const LightingFixtures: React.FC<LightingFixturesProps> = ({ transformMod
   const buildingModelLoaded = useSceneStore(state => state.buildingModelLoaded);
   const setGlobalDragging = useSceneStore(state => state.setDragging);
   const setTransforming = useSceneStore(state => state.setTransforming);
+  const fixturesVisible = useSceneStore(state => state.fixturesVisible);
   const { scene } = useThree();
   const [scaleFactor, setScaleFactor] = useState(1.0);
   
@@ -74,6 +75,7 @@ export const LightingFixtures: React.FC<LightingFixturesProps> = ({ transformMod
           setTransforming={setTransforming}
           scaleFactor={scaleFactor}
           transformMode={selectedFixtureId === fixture.id ? transformMode : undefined}
+          fixturesVisible={fixturesVisible}
         />
       ))}
     </group>
@@ -89,6 +91,7 @@ interface FixtureInstanceProps {
   setTransforming: (isTransforming: boolean) => void;
   scaleFactor: number;
   transformMode?: 'translate' | 'rotate' | 'scale';
+  fixturesVisible: boolean;
 }
 
 const FixtureInstance = ({ 
@@ -99,7 +102,8 @@ const FixtureInstance = ({
   setGlobalDragging,
   setTransforming,
   scaleFactor,
-  transformMode
+  transformMode,
+  fixturesVisible
 }: FixtureInstanceProps) => {
   const groupRef = useRef<THREE.Group>(null);
   const spotlightRef = useRef<THREE.SpotLight>(null);
@@ -375,24 +379,26 @@ const FixtureInstance = ({
         onPointerUp={handlePointerUp}
         userData={{ type: 'fixture' }}
       >
-        {/* Visual representation of the fixture */}
-        <mesh 
-          castShadow 
-          userData={{ type: 'fixture' }} 
-          scale={visualScale}
-        >
-          <boxGeometry args={[0.2, 0.2, 0.2]} />
-          <meshStandardMaterial 
-            color={isSelected ? 0xff7700 : 0xffffff} 
-            emissive={emissiveColor}
-            emissiveIntensity={isSelected ? 1.0 : 0.5}
-            roughness={0.3}
-            metalness={0.5}
-          />
-        </mesh>
+        {/* Visual representation of the fixture - only visible when fixturesVisible is true */}
+        {fixturesVisible && (
+          <mesh 
+            castShadow 
+            userData={{ type: 'fixture' }} 
+            scale={visualScale}
+          >
+            <boxGeometry args={[0.2, 0.2, 0.2]} />
+            <meshStandardMaterial 
+              color={isSelected ? 0xff7700 : 0xffffff} 
+              emissive={emissiveColor}
+              emissiveIntensity={isSelected ? 1.0 : 0.5}
+              roughness={0.3}
+              metalness={0.5}
+            />
+          </mesh>
+        )}
         
-        {/* Add a glow sphere around selected fixtures */}
-        {isSelected && !transformMode && (
+        {/* Add a glow sphere around selected fixtures - only visible when fixturesVisible is true */}
+        {isSelected && !transformMode && fixturesVisible && (
           <mesh scale={visualScale * 1.4}>
             <sphereGeometry args={[0.2, 16, 16]} />
             <meshBasicMaterial 
@@ -432,8 +438,8 @@ const FixtureInstance = ({
           />
         )}
         
-        {/* Optional visual indicator for light direction */}
-        {isSelected && (
+        {/* Optional visual indicator for light direction - only visible when fixturesVisible is true and fixture is selected */}
+        {isSelected && fixturesVisible && (
           <mesh position={[0, 0, -1]} scale={[0.05, 0.05, 2]}>
             <boxGeometry />
             <meshBasicMaterial color={0xffff00} transparent opacity={0.3} />

@@ -28,6 +28,7 @@ type SceneState = {
   isTransforming: boolean; // Add new state to track transform control interaction
   buildingModelLoaded: boolean;
   isDuplicating: boolean; // Track when duplication is in process
+  fixturesVisible: boolean; // Track if fixture 3D objects should be visible
   
   // History stacks for undo/redo
   history: HistoryEntry[];
@@ -46,6 +47,7 @@ type SceneState = {
   clearFixtures: () => void;
   duplicateFixture: (id: string, position?: THREE.Vector3, rotation?: THREE.Euler) => string | null; // New action to duplicate a fixture
   setDuplicating: (isDuplicating: boolean) => void; // Track duplication state
+  toggleFixturesVisibility: () => void; // Toggle visibility of fixture 3D objects
   
   // History actions
   undo: () => void;
@@ -66,6 +68,7 @@ export const useSceneStore = create<SceneState>((set, get) => ({
   isTransforming: false,
   buildingModelLoaded: false,
   isDuplicating: false,
+  fixturesVisible: true, // Fixtures are visible by default
   
   // Initialize history with the initial state
   history: [],
@@ -286,6 +289,13 @@ export const useSceneStore = create<SceneState>((set, get) => ({
     
     // Use the existing duplicateFixture function
     return state.duplicateFixture(copiedId, position, rotation);
+  },
+  
+  // Toggle fixtures visibility
+  toggleFixturesVisibility: () => {
+    set(state => ({
+      fixturesVisible: !state.fixturesVisible
+    }));
   },
   
   // Undo action

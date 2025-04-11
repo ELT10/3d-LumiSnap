@@ -12,6 +12,14 @@ export type LightFixture = {
   iesProfile: string | null;
   name: string;
   manufacturer: string;
+  // Media facade specific properties
+  mediaUrl?: string;
+  mediaOpacity?: number;
+  mediaActive?: boolean;
+  panelSize?: number;
+  panelGap?: number;
+  panelResolution?: number;
+  panelRoundness?: number;
 };
 
 // Represent a history entry for undo/redo

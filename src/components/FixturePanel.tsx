@@ -38,6 +38,14 @@ const SAMPLE_FIXTURES = [
     type: 'pendant',
     iesProfile: '/ies/pendant.ies',
     thumbnail: '/thumbnails/pendant.jpg'
+  },
+  {
+    id: 'fixture-5',
+    name: 'Media Facade',
+    manufacturer: 'DisplayTech',
+    type: 'mediaFacade',
+    iesProfile: null,
+    thumbnail: '/thumbnails/media.jpg'
   }
 ];
 
@@ -46,7 +54,7 @@ interface FixtureCatalogItem {
   name: string;
   manufacturer: string;
   type: string;
-  iesProfile: string;
+  iesProfile: string | null;
   thumbnail: string;
 }
 
@@ -90,7 +98,7 @@ export const FixturePanel: React.FC = () => {
   
   const handleAddFixture = (fixture: FixtureCatalogItem) => {
     // Create a new fixture at a default position
-    addFixture({
+    const newFixture = {
       type: fixture.type,
       position: new THREE.Vector3(0, 2, 0), // Default position above the floor
       rotation: new THREE.Euler(0, 0, 0),
@@ -100,7 +108,40 @@ export const FixturePanel: React.FC = () => {
       iesProfile: fixture.iesProfile,
       name: fixture.name,
       manufacturer: fixture.manufacturer
-    });
+    };
+
+    // Add media facade specific properties if needed
+    if (fixture.type === 'mediaFacade') {
+      // Default sample video - should be replaced with a proper default video file that exists in your project
+      const mediaProps = {
+        mediaUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', // Different sample video
+        mediaOpacity: 1.0, // Higher default opacity for visibility
+        mediaActive: true,
+        panelSize: 0.05,
+        panelGap: 0.005,
+        panelResolution: 32,
+        panelRoundness: 0.2
+      };
+      
+      // For media facades, use a different initial position higher on walls/buildings
+      newFixture.position = new THREE.Vector3(0, 5, 0); // Higher up on the wall
+      // Use larger scale for media facades
+      newFixture.scale = new THREE.Vector3(3, 2, 1); // 3:2 aspect ratio
+      // Increase intensity for better visibility
+      newFixture.intensity = 3.0;
+      
+      console.log('Adding media facade with properties:', {
+        ...newFixture,
+        ...mediaProps
+      });
+      
+      addFixture({
+        ...newFixture,
+        ...mediaProps
+      });
+    } else {
+      addFixture(newFixture);
+    }
   };
   
   const handleDeleteFixture = (id: string) => {

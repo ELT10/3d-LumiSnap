@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSceneStore } from '../store/sceneStore';
 import * as THREE from 'three';
 import './FixturePropertiesPanel.css';
@@ -45,6 +45,13 @@ export const FixturePropertiesPanel: React.FC = () => {
   // Local state for UI values
   const [intensity, setIntensity] = useState(1.0);
   const [temperature, setTemperature] = useState(4000);
+  // Media facade specific state
+  const [mediaOpacity, setMediaOpacity] = useState(0.8);
+  const [panelSize, setPanelSize] = useState(0.05);
+  const [panelGap, setPanelGap] = useState(0.005);
+  const [panelResolution, setPanelResolution] = useState(32);
+  const [panelRoundness, setPanelRoundness] = useState(0.2);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Update local state when selected fixture changes
   useEffect(() => {
@@ -53,6 +60,23 @@ export const FixturePropertiesPanel: React.FC = () => {
       // We'll estimate temperature based on the fixture's color
       // This is simplified - a real implementation would need color-to-temp conversion
       setTemperature(4000); // Default neutral temperature
+      
+      // Update media facade specific properties if available
+      if (selectedFixture.mediaOpacity !== undefined) {
+        setMediaOpacity(selectedFixture.mediaOpacity);
+      }
+      if (selectedFixture.panelSize !== undefined) {
+        setPanelSize(selectedFixture.panelSize);
+      }
+      if (selectedFixture.panelGap !== undefined) {
+        setPanelGap(selectedFixture.panelGap);
+      }
+      if (selectedFixture.panelResolution !== undefined) {
+        setPanelResolution(selectedFixture.panelResolution);
+      }
+      if (selectedFixture.panelRoundness !== undefined) {
+        setPanelRoundness(selectedFixture.panelRoundness);
+      }
     }
   }, [selectedFixture]);
   
@@ -74,9 +98,59 @@ export const FixturePropertiesPanel: React.FC = () => {
     updateFixture(selectedFixtureId!, { color: newColor });
   };
   
+  const handleMediaUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && selectedFixtureId) {
+      const url = URL.createObjectURL(file);
+      updateFixture(selectedFixtureId, { 
+        mediaUrl: url, 
+        mediaActive: true 
+      });
+    }
+  };
+  
+  const handleMediaActiveToggle = () => {
+    if (selectedFixtureId) {
+      updateFixture(selectedFixtureId, { 
+        mediaActive: !(selectedFixture.mediaActive || false) 
+      });
+    }
+  };
+  
+  // Media facade specific handlers
+  const handleMediaOpacityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    setMediaOpacity(value);
+    updateFixture(selectedFixtureId!, { mediaOpacity: value });
+  };
+  
+  const handlePanelSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    setPanelSize(value);
+    updateFixture(selectedFixtureId!, { panelSize: value });
+  };
+  
+  const handlePanelGapChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    setPanelGap(value);
+    updateFixture(selectedFixtureId!, { panelGap: value });
+  };
+  
+  const handlePanelResolutionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value);
+    setPanelResolution(value);
+    updateFixture(selectedFixtureId!, { panelResolution: value });
+  };
+  
+  const handlePanelRoundnessChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    setPanelRoundness(value);
+    updateFixture(selectedFixtureId!, { panelRoundness: value });
+  };
+  
   return (
-    <div className="fixture-properties-panel">
-      <h3>Light Properties</h3>
+    <div className={`fixture-properties-panel ${selectedFixture.type === 'mediaFacade' ? 'media-facade-panel' : ''}`}>
+      <h3>{selectedFixture.name} Properties</h3>
       <div className="property-row">
         <label htmlFor="intensity">Intensity:</label>
         <input 
@@ -91,34 +165,154 @@ export const FixturePropertiesPanel: React.FC = () => {
         <span className="property-value">{intensity.toFixed(1)}</span>
       </div>
       
-      <div className="property-row">
-        <label htmlFor="temperature">Color Temperature:</label>
-        <input 
-          id="temperature"
-          type="range" 
-          min="1900" 
-          max="6500" 
-          step="100" 
-          value={temperature} 
-          onChange={handleTemperatureChange}
-        />
-        <span className="property-value">{temperature}K</span>
-      </div>
+      {/* Only show temperature controls for non-media facades */}
+      {selectedFixture.type !== 'mediaFacade' && (
+        <>
+          <div className="property-row">
+            <label htmlFor="temperature">Color Temperature:</label>
+            <input 
+              id="temperature"
+              type="range" 
+              min="1900" 
+              max="6500" 
+              step="100" 
+              value={temperature} 
+              onChange={handleTemperatureChange}
+            />
+            <span className="property-value">{temperature}K</span>
+          </div>
+          
+          <div className="temperature-presets">
+            <button onClick={() => handleTemperatureChange({ target: { value: String(COLOR_TEMPERATURES.CANDLE) } } as any)}>
+              Candle
+            </button>
+            <button onClick={() => handleTemperatureChange({ target: { value: String(COLOR_TEMPERATURES.WARM) } } as any)}>
+              Warm
+            </button>
+            <button onClick={() => handleTemperatureChange({ target: { value: String(COLOR_TEMPERATURES.NEUTRAL) } } as any)}>
+              Neutral
+            </button>
+            <button onClick={() => handleTemperatureChange({ target: { value: String(COLOR_TEMPERATURES.DAYLIGHT) } } as any)}>
+              Daylight
+            </button>
+          </div>
+        </>
+      )}
       
-      <div className="temperature-presets">
-        <button onClick={() => handleTemperatureChange({ target: { value: String(COLOR_TEMPERATURES.CANDLE) } } as any)}>
-          Candle
-        </button>
-        <button onClick={() => handleTemperatureChange({ target: { value: String(COLOR_TEMPERATURES.WARM) } } as any)}>
-          Warm
-        </button>
-        <button onClick={() => handleTemperatureChange({ target: { value: String(COLOR_TEMPERATURES.NEUTRAL) } } as any)}>
-          Neutral
-        </button>
-        <button onClick={() => handleTemperatureChange({ target: { value: String(COLOR_TEMPERATURES.DAYLIGHT) } } as any)}>
-          Daylight
-        </button>
-      </div>
+      {/* Media Facade specific settings */}
+      {selectedFixture.type === 'mediaFacade' && (
+        <div className="media-facade-settings">
+          <h3>Media Facade Controls</h3>
+          
+          <div className="media-status">
+            {selectedFixture.mediaUrl ? (
+              <div className="media-status-label success">Media loaded</div>
+            ) : (
+              <div className="media-status-label warning">No media loaded</div>
+            )}
+            {selectedFixture.mediaActive ? (
+              <div className="media-status-label active">Playing</div>
+            ) : (
+              <div className="media-status-label inactive">Paused</div>
+            )}
+          </div>
+          
+          <div className="property-row">
+            <label htmlFor="mediaOpacity">Opacity:</label>
+            <input 
+              id="mediaOpacity"
+              type="range" 
+              min="0" 
+              max="1" 
+              step="0.01" 
+              value={mediaOpacity} 
+              onChange={handleMediaOpacityChange}
+            />
+            <span className="property-value">{mediaOpacity.toFixed(2)}</span>
+          </div>
+          
+          <div className="property-row button-row">
+            <button 
+              className={`toggle-button ${selectedFixture.mediaActive ? 'active' : ''}`}
+              onClick={handleMediaActiveToggle}
+            >
+              {selectedFixture.mediaActive ? 'Pause Media' : 'Play Media'}
+            </button>
+            
+            <button 
+              className="upload-button"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              Upload Media
+            </button>
+            <input 
+              ref={fileInputRef}
+              type="file" 
+              accept="video/*" 
+              style={{ display: 'none' }}
+              onChange={handleMediaUpload}
+            />
+          </div>
+          
+          <h4>Panel Configuration</h4>
+          
+          <div className="property-row">
+            <label htmlFor="panelSize">Panel Size (m):</label>
+            <input 
+              id="panelSize"
+              type="range" 
+              min="0.01" 
+              max="0.2" 
+              step="0.005" 
+              value={panelSize} 
+              onChange={handlePanelSizeChange}
+            />
+            <span className="property-value">{panelSize.toFixed(3)}</span>
+          </div>
+          
+          <div className="property-row">
+            <label htmlFor="panelGap">Panel Gap (m):</label>
+            <input 
+              id="panelGap"
+              type="range" 
+              min="0.001" 
+              max="0.05" 
+              step="0.001" 
+              value={panelGap} 
+              onChange={handlePanelGapChange}
+            />
+            <span className="property-value">{panelGap.toFixed(3)}</span>
+          </div>
+          
+          <div className="property-row">
+            <label htmlFor="panelResolution">Resolution:</label>
+            <input 
+              id="panelResolution"
+              type="range" 
+              min="8" 
+              max="64" 
+              step="1" 
+              value={panelResolution} 
+              onChange={handlePanelResolutionChange}
+            />
+            <span className="property-value">{panelResolution}×{panelResolution}</span>
+          </div>
+          
+          <div className="property-row">
+            <label htmlFor="panelRoundness">Panel Roundness:</label>
+            <input 
+              id="panelRoundness"
+              type="range" 
+              min="0" 
+              max="0.5" 
+              step="0.01" 
+              value={panelRoundness} 
+              onChange={handlePanelRoundnessChange}
+            />
+            <span className="property-value">{panelRoundness.toFixed(2)}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }; 

@@ -1,16 +1,19 @@
 .fixture-properties-panel {
   position: absolute;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: rgba(30, 30, 30, 0.8);
+  top: 70px;
+  right: 20px;
+  left: auto;
+  transform: none;
+  background-color: rgba(30, 30, 30, 0.9);
   backdrop-filter: blur(8px);
   border-radius: 8px;
   padding: 16px;
   width: 320px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   color: white;
   z-index: 1000;
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
 }
 
 .fixture-properties-panel h3 {
@@ -78,4 +81,102 @@
 
 .temperature-presets button:nth-child(4) {
   background-color: rgb(212, 235, 255); /* Daylight */
+}
+
+/* Media facade specific styles */
+.media-facade-settings {
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  padding-top: 10px;
+  margin-top: 10px;
+}
+
+.media-facade-settings h3 {
+  color: #4CAF50;
+  margin-bottom: 12px;
+}
+
+.media-facade-settings h4 {
+  color: #2196F3;
+  margin: 15px 0 10px;
+  font-size: 14px;
+}
+
+.upload-button, .toggle-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-right: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.upload-button:hover {
+  background-color: #45a049;
+}
+
+.toggle-button {
+  background-color: #2196F3;
+}
+
+.toggle-button.active {
+  background-color: #f44336;
+}
+
+.toggle-button:hover {
+  background-color: #0b7dda;
+}
+
+.toggle-button.active:hover {
+  background-color: #d32f2f;
+}
+
+/* Media facade specific panel styles */
+.media-facade-panel {
+  background-color: rgba(20, 40, 60, 0.95); /* Darker blue background */
+  border: 1px solid #4CAF50;
+}
+
+.media-status {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding: 8px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+.media-status-label {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.media-status-label.success {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.media-status-label.warning {
+  background-color: #FFC107;
+  color: black;
+}
+
+.media-status-label.active {
+  background-color: #2196F3;
+  color: white;
+}
+
+.media-status-label.inactive {
+  background-color: #9E9E9E;
+  color: white;
+}
+
+.button-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
 } 

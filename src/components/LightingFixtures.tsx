@@ -7,6 +7,7 @@ import { IESLight } from '.';
 import { useIESLoader, IESData } from '../hooks';
 import { calculateFixtureScaleFactor } from '../utils/scalingUtils';
 import './LightingFixtures.css';
+import { MediaFacade } from './media/MediaFacade';
 
 interface LightingFixturesProps {
   transformMode: 'translate' | 'rotate' | 'scale';
@@ -365,6 +366,19 @@ const FixtureInstance = ({
     }
   }, [fixture.id]);
   
+  // Check if this is a media facade type
+  const isMediaFacade = fixture.type === 'mediaFacade';
+  
+  // Add logging for rendering
+  if (isMediaFacade && fixture.mediaUrl) {
+    console.log('FixtureInstance: Rendering MediaFacade with', {
+      videoSrc: fixture.mediaUrl,
+      active: fixture.mediaActive || false,
+      intensity: fixture.intensity,
+      opacity: fixture.mediaOpacity || 0.8
+    });
+  }
+  
   // Return JSX with TransformControls
   return (
     <>
@@ -379,8 +393,27 @@ const FixtureInstance = ({
         onPointerUp={handlePointerUp}
         userData={{ type: 'fixture' }}
       >
+        {/* Add media facade if this is a media facade type */}
+        {isMediaFacade && fixture.mediaUrl && (
+          <>
+            <MediaFacade
+              videoSrc={fixture.mediaUrl}
+              position={new THREE.Vector3(0, 0, -0.1)} // Slightly offset forward to avoid z-fighting
+              rotation={new THREE.Euler(0, 0, 0)} // Local rotation
+              scale={new THREE.Vector3(3, 2, 1)} // Make it wider and taller by default (3:2 aspect ratio)
+              intensity={fixture.intensity}
+              opacity={fixture.mediaOpacity || 0.8}
+              active={fixture.mediaActive || false}
+              panelSize={fixture.panelSize || 0.05}
+              panelGap={fixture.panelGap || 0.005}
+              panelResolution={fixture.panelResolution || 32}
+              panelRoundness={fixture.panelRoundness || 0.2}
+            />
+          </>
+        )}
+
         {/* Visual representation of the fixture - only visible when fixturesVisible is true */}
-        {fixturesVisible && (
+        {fixturesVisible && !isMediaFacade && (
           <mesh 
             castShadow 
             userData={{ type: 'fixture' }} 
@@ -410,8 +443,8 @@ const FixtureInstance = ({
           </mesh>
         )}
         
-        {/* Use IES Light when IES data is available */}
-        {iesData ? (
+        {/* Use IES Light when IES data is available, but not for media facades */}
+        {iesData && !isMediaFacade ? (
           <IESLight 
             iesData={iesData}
             position={[0, 0, 0]}
@@ -423,19 +456,21 @@ const FixtureInstance = ({
             target={spotlightTargetRef.current}
           />
         ) : (
-          /* Fallback spotlight when IES data is not available or still loading */
-          <spotLight 
-            ref={spotlightRef}
-            position={[0, 0, 0]}
-            color={fixture.color}
-            intensity={scaledIntensity}
-            distance={lightParams.distance}
-            angle={lightParams.angle}
-            penumbra={lightParams.penumbra}
-            decay={lightParams.decay}
-            castShadow
-            target={spotlightTargetRef.current}
-          />
+          /* Fallback spotlight when IES data is not available or still loading, but not for media facades */
+          !isMediaFacade && (
+            <spotLight 
+              ref={spotlightRef}
+              position={[0, 0, 0]}
+              color={fixture.color}
+              intensity={scaledIntensity}
+              distance={lightParams.distance}
+              angle={lightParams.angle}
+              penumbra={lightParams.penumbra}
+              decay={lightParams.decay}
+              castShadow
+              target={spotlightTargetRef.current}
+            />
+          )
         )}
         
         {/* Optional visual indicator for light direction - only visible when fixturesVisible is true and fixture is selected */}

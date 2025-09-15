@@ -1,6 +1,5 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import * as THREE from 'three';
-import { useThree } from '@react-three/fiber';
 
 interface MediaFacadeProps {
   videoSrc: string;
@@ -14,7 +13,6 @@ interface MediaFacadeProps {
   panelSize: number;
   panelGap: number;
   panelResolution: number; // Number of panels per row/column
-  panelRoundness: number; // 0-1 for panel corner rounding
 }
 
 export const MediaFacade: React.FC<MediaFacadeProps> = ({
@@ -28,7 +26,6 @@ export const MediaFacade: React.FC<MediaFacadeProps> = ({
   panelSize = 0.05, // Default 5cm panels
   panelGap = 0.005, // Default 5mm gap
   panelResolution = 32, // Default 32x32 panel grid
-  panelRoundness = 0.2 // Default subtle rounding
 }) => {
   const groupRef = useRef<THREE.Group>(null);
   const [videoTexture, setVideoTexture] = useState<THREE.VideoTexture | null>(null);

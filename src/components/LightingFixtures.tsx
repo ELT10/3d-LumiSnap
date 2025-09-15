@@ -407,7 +407,6 @@ const FixtureInstance = ({
               panelSize={fixture.panelSize || 0.05}
               panelGap={fixture.panelGap || 0.005}
               panelResolution={fixture.panelResolution || 32}
-              panelRoundness={fixture.panelRoundness || 0.2}
             />
           </>
         )}

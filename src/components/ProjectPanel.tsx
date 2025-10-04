@@ -49,7 +49,7 @@ const ProjectPanel: React.FC<ProjectPanelProps> = ({ isOpen, mode, onClose }) =>
         setSelectedProject('');
       }
     }
-  }, [isOpen, mode]);
+  }, [isOpen, mode, currentProjectName]);
   
   // Handle escape key to close modal
   useEffect(() => {

@@ -141,3 +141,8 @@ Frontend Todo List
 [ ] Document component architecture
 [ ] Write developer documentation
 [ ] Add inline code documentation
+- [x] Introduce new typography stack and background lighting on InitialChoice screen
+- [x] Preview and verify new design in browser
+- [x] Ensure TextPrompt and other workflows remain vertically scrollable with new glass layout
+- [ ] Roll glass theme into image variation grid
+- [ ] Update demo scene overlay to theme tokens

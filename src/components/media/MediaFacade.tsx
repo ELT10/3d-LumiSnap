@@ -138,7 +138,7 @@ export const MediaFacade: React.FC<MediaFacadeProps> = ({
         videoTexture.dispose();
       }
     };
-  }, [videoSrc, active]);
+  }, [videoSrc, active, videoTexture]);
   
   // Update playback state when active changes
   useEffect(() => {
@@ -174,7 +174,7 @@ export const MediaFacade: React.FC<MediaFacadeProps> = ({
         });
       }
     }
-  }, [active, videoElement]);
+  }, [active, videoElement, videoTexture]);
   
   // Generate panel geometry with rounded corners
   const panelGeometry = useMemo(() => {
@@ -195,7 +195,7 @@ export const MediaFacade: React.FC<MediaFacadeProps> = ({
     const totalWidth = (panelSize + panelGap) * panelResolution - panelGap;
     
     // Generate a grid of panel positions
-    const panels = [];
+    const panels: Array<{ x: number; y: number }> = [];
     
     // Create material that completely ignores scene lighting
     const material = new THREE.MeshBasicMaterial({
@@ -227,7 +227,7 @@ export const MediaFacade: React.FC<MediaFacadeProps> = ({
   
   // Update panel colors based on video texture
   useEffect(() => {
-    if ((!videoTexture || !videoElement) && !DEBUG_MODE) return; // Skip if no video and not in debug mode
+    if ((!videoTexture || !videoElement) && !DEBUG_MODE) return;
     if (!groupRef.current || panelGrid.panels.length === 0) return;
     
     // Set up an animation loop to sample the video
@@ -346,44 +346,57 @@ export const MediaFacade: React.FC<MediaFacadeProps> = ({
       cancelAnimationFrame(animationFrameId);
       samplingCanvas.remove();
     };
-  }, [videoTexture, videoElement, active, intensity, panelGrid.panels, panelResolution, DEBUG_MODE]);
+  }, [videoTexture, videoElement, active, intensity, panelGrid, panelResolution, DEBUG_MODE]);
   
   // Create the panel meshes
   useEffect(() => {
-    if (!groupRef.current) {
+    const currentGroup = groupRef.current;
+
+    if (!currentGroup) {
       console.log('MediaFacade: Group ref not available');
       return;
     }
-    
+
     console.log('MediaFacade: Creating panel meshes');
-    
-    // Clear previous panels
-    while (groupRef.current.children.length > 0) {
-      const material = (groupRef.current.children[0] as THREE.Mesh).material as THREE.Material;
-      if (material) material.dispose();
-      groupRef.current.remove(groupRef.current.children[0]);
-    }
-    
-    // Create panel meshes
-    panelGrid.panels.forEach(panel => {
-      const material = panelGrid.material.clone(); // Clone material so each panel can have its own color
-      
-      // Start with dark panels by default
-      if (!DEBUG_MODE) {
-        (material as THREE.MeshBasicMaterial).color.setRGB(0, 0, 0); // Completely black
+
+    while (currentGroup.children.length > 0) {
+      const mesh = currentGroup.children[0] as THREE.Mesh;
+      const material = mesh.material;
+      if (Array.isArray(material)) {
+        material.forEach(mat => mat.dispose());
+      } else if (material) {
+        material.dispose();
       }
-      
-      const panelMesh = new THREE.Mesh(
-        panelGeometry, 
-        material
-      );
-      
+      currentGroup.remove(mesh);
+    }
+
+    panelGrid.panels.forEach(panel => {
+      const material = panelGrid.material.clone();
+      if (!DEBUG_MODE) {
+        (material as THREE.MeshBasicMaterial).color.setRGB(0, 0, 0);
+      }
+
+      const panelMesh = new THREE.Mesh(panelGeometry, material);
       panelMesh.position.set(panel.x, panel.y, 0);
-      groupRef.current!.add(panelMesh);
+      currentGroup.add(panelMesh);
     });
-    
+
     console.log(`MediaFacade: Added ${panelGrid.panels.length} panel meshes to the scene`);
-  }, [panelGeometry, panelGrid, DEBUG_MODE]);
+
+    return () => {
+      const cleanupGroup = groupRef.current ?? currentGroup;
+      while (cleanupGroup && cleanupGroup.children.length > 0) {
+        const mesh = cleanupGroup.children[0] as THREE.Mesh;
+        const material = mesh.material;
+        if (Array.isArray(material)) {
+          material.forEach(mat => mat.dispose());
+        } else if (material) {
+          material.dispose();
+        }
+        cleanupGroup.remove(mesh);
+      }
+    };
+  }, [panelGeometry, panelGrid, panelGrid.material, DEBUG_MODE]);
   
   return (
     <group

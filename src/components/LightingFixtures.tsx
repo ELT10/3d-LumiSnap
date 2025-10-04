@@ -8,6 +8,8 @@ import { useIESLoader, IESData } from '../hooks';
 import { calculateFixtureScaleFactor } from '../utils/scalingUtils';
 import './LightingFixtures.css';
 import { MediaFacade } from './media/MediaFacade';
+import type { ThreeEvent } from '@react-three/fiber';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 
 interface LightingFixturesProps {
   transformMode: 'translate' | 'rotate' | 'scale';
@@ -115,7 +117,7 @@ const FixtureInstance = ({
   const [iesData, setIESData] = useState<IESData | null>(null);
   const { loadIESProfile } = useIESLoader();
   const [time, setTime] = useState(0);
-  const orbitControlsRef = useThree(state => state.controls);
+  const orbitControlsRef = useThree(state => state.controls) as OrbitControlsImpl | undefined;
   const [isActuallyTransforming, setIsActuallyTransforming] = useState(false);
   const transformingTimerRef = useRef<number | null>(null);
   
@@ -131,12 +133,12 @@ const FixtureInstance = ({
       .catch((error) => {
         console.error(`Failed to load IES profile ${fixture.iesProfile}:`, error);
       });
-  }, [fixture.iesProfile, loadIESProfile]);
+  }, [fixture.iesProfile, loadIESProfile, fixture.name]);
   
   // Sync local dragging state with global state
   useEffect(() => {
     setGlobalDragging(isDragging);
-  }, [isDragging, setGlobalDragging]);
+  }, [isDragging, setGlobalDragging, fixture.name]);
   
   // Apply the building-based scale factor and increase size if selected
   const baseScale = scaleFactor;
@@ -224,10 +226,9 @@ const FixtureInstance = ({
   // Disable orbit controls when using transform controls
   useEffect(() => {
     if (orbitControlsRef && isSelected && transformMode) {
-      const controls = orbitControlsRef as any;
-      controls.enabled = false;
+      orbitControlsRef.enabled = false;
       return () => {
-        controls.enabled = true;
+        orbitControlsRef.enabled = true;
       };
     }
   }, [orbitControlsRef, isSelected, transformMode]);
@@ -288,33 +289,35 @@ const FixtureInstance = ({
   }, [isSelected, transformMode]);
   
   // Handle selection click
-  const handleFixtureClick = (e: any) => {
-    e.stopPropagation();
+  const handleFixtureClick = (event: ThreeEvent<MouseEvent>) => {
+    event.stopPropagation();
     // Prevent event from reaching the background
-    e.nativeEvent.stopPropagation();
+    event.nativeEvent.stopPropagation();
     onSelect();
   };
   
   // Handle dragging - only used when transform controls are not active
-  const handlePointerDown = (e: any) => {
+  const handlePointerDown = (event: ThreeEvent<PointerEvent>) => {
     if (isSelected && !transformMode) {
-      e.stopPropagation();
+      event.stopPropagation();
       setLocalDragging(true);
       
       // Set pointer capture on the DOM element
-      (e.target as any).setPointerCapture(e.pointerId);
+      if (event.target instanceof Element) {
+        event.target.setPointerCapture(event.pointerId);
+      }
     }
   };
   
-  const handlePointerMove = (e: any) => {
+  const handlePointerMove = (event: ThreeEvent<PointerEvent>) => {
     if (!isDragging || !groupRef.current || transformMode) return;
     
-    e.stopPropagation();
+    event.stopPropagation();
     
     // Convert mouse position to normalized device coordinates
     const mouse = new THREE.Vector2(
-      (e.clientX / window.innerWidth) * 2 - 1,
-      -(e.clientY / window.innerHeight) * 2 + 1
+      (event.clientX / window.innerWidth) * 2 - 1,
+      -(event.clientY / window.innerHeight) * 2 + 1
     );
     
     // Update the raycaster with the mouse position and camera
@@ -332,14 +335,14 @@ const FixtureInstance = ({
     }
   };
   
-  const handlePointerUp = (e: any) => {
+  const handlePointerUp = (event: ThreeEvent<PointerEvent>) => {
     if (isDragging) {
-      e.stopPropagation();
+      event.stopPropagation();
       setLocalDragging(false);
       
       // Release pointer capture
-      if (e.target) {
-        (e.target as any).releasePointerCapture(e.pointerId);
+      if (event.target instanceof Element) {
+        event.target.releasePointerCapture(event.pointerId);
       }
     }
   };

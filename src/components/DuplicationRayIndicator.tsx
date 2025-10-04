@@ -26,8 +26,6 @@ const DuplicationRayIndicator: React.FC<DuplicationRayIndicatorProps> = ({
   const time = useRef(0);
   const isDuplicating = useSceneStore(state => state.isDuplicating);
 
-  if (!isDuplicating) return null;
-  
   // Animate the pulse effect
   useFrame((_, delta: number) => {
     time.current += delta;
@@ -55,17 +53,17 @@ const DuplicationRayIndicator: React.FC<DuplicationRayIndicatorProps> = ({
         new THREE.Vector3(startPosition.x, startPosition.y, startPosition.z),
         new THREE.Vector3(endPosition.x, endPosition.y, endPosition.z)
       ];
-    } else {
-      // Otherwise, just show a line extending from the normal
-      return [
-        new THREE.Vector3(endPosition.x, endPosition.y, endPosition.z),
-        new THREE.Vector3(
-          endPosition.x + normal.x * 0.6, 
-          endPosition.y + normal.y * 0.6, 
-          endPosition.z + normal.z * 0.6
-        )
-      ];
     }
+
+    // Otherwise, just show a line extending from the normal
+    return [
+      new THREE.Vector3(endPosition.x, endPosition.y, endPosition.z),
+      new THREE.Vector3(
+        endPosition.x + normal.x * 0.6,
+        endPosition.y + normal.y * 0.6,
+        endPosition.z + normal.z * 0.6
+      )
+    ];
   }, [startPosition, endPosition, normal]);
   
   // Calculate rotation based on the normal vector and surface type
@@ -100,6 +98,10 @@ const DuplicationRayIndicator: React.FC<DuplicationRayIndicatorProps> = ({
   // Blue-ish color for the duplication ray
   const glowColor = new THREE.Color(0x4fc3f7).multiplyScalar(1.5);
   
+  if (!isDuplicating) {
+    return null;
+  }
+
   return (
     <group>
       {/* Ray indicator line */}

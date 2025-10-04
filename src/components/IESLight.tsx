@@ -49,9 +49,7 @@ export const IESLight: React.FC<IESLightProps> = ({
     const data = new Uint8Array(textureSize * textureSize * 4);
     
     // Normalize the candela values to 0-1 range
-    const normalizedValues = iesData.candelaValues.map(row => 
-      row.map(value => value / iesData.maxCandela)
-    );
+    const normalizedValues = iesData.candelaValues.map(row => row.map(value => value / iesData.maxCandela));
     
     // Fill the texture with the normalized candela values
     // For a proper implementation, we'd need to interpolate values
@@ -64,8 +62,9 @@ export const IESLight: React.FC<IESLightProps> = ({
         const pixelIndex = index * 4;
         
         // Normalized candela value (0-1)
-        const value = normalizedValues[Math.min(h, normalizedValues.length - 1)]
-                                   [Math.min(v, normalizedValues[0].length - 1)];
+      const value = normalizedValues[Math.min(h, normalizedValues.length - 1)][
+        Math.min(v, normalizedValues[0].length - 1)
+      ];
         
         // Store the normalized value in all RGB channels (white light)
         data[pixelIndex] = Math.floor(value * 255); // R
@@ -142,29 +141,28 @@ export const IESLight: React.FC<IESLightProps> = ({
   
   // Update properties when they change
   useEffect(() => {
-    if (spotlightRef.current) {
-      // Set the target if provided
-      if (target) {
-        spotlightRef.current.target = target;
-      }
-      
-      // Update intensity
-      if (iesData) {
-        spotlightRef.current.intensity = intensity * (iesData.totalLumens / 1000);
-      } else {
-        spotlightRef.current.intensity = intensity;
-      }
-      
-      // Update color
-      if (typeof color === 'string' || typeof color === 'number') {
-        spotlightRef.current.color.set(color);
-      } else {
-        spotlightRef.current.color = color;
-      }
-      
-      // Update distance
-      spotlightRef.current.distance = distance || 0;
+    const spot = spotlightRef.current;
+    if (!spot) {
+      return;
     }
+
+    if (target) {
+      spot.target = target;
+    }
+
+    if (iesData) {
+      spot.intensity = intensity * (iesData.totalLumens / 1000);
+    } else {
+      spot.intensity = intensity;
+    }
+
+    if (typeof color === 'string' || typeof color === 'number') {
+      spot.color.set(color);
+    } else {
+      spot.color.copy(color);
+    }
+
+    spot.distance = distance || 0;
   }, [target, distance, intensity, color, iesData]);
   
   return (

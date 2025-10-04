@@ -2,6 +2,7 @@ import { useRef, useEffect } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { useSceneStore } from '../store/sceneStore';
 import { Mesh, Group, MeshStandardMaterial, Vector3 } from 'three';
+import type { OrbitControls } from 'three-stdlib';
 import { calculateBoundingBox } from '../utils/sceneUtils';
 import { useThree } from '@react-three/fiber';
 
@@ -21,7 +22,9 @@ export const BuildingModel = ({ modelPath = DEFAULT_MODEL_PATH }: BuildingModelP
   const { scene: model } = useGLTF(modelPath);
   
   useEffect(() => {
-    if (model && group.current) {
+    const groupInstance = group.current;
+
+    if (model && groupInstance) {
       // Clone the model to avoid modifying the cached original
       const modelClone = model.clone();
       
@@ -56,15 +59,15 @@ export const BuildingModel = ({ modelPath = DEFAULT_MODEL_PATH }: BuildingModelP
       });
       
       // Clear any previous models
-      while (group.current.children.length > 0) {
-        group.current.remove(group.current.children[0]);
+      while (groupInstance.children.length > 0) {
+        groupInstance.remove(groupInstance.children[0]);
       }
       
       // Add the new model
-      group.current.add(modelClone);
+      groupInstance.add(modelClone);
       
       // Explicitly position group at origin
-      group.current.position.set(0, 0, 0);
+      groupInstance.position.set(0, 0, 0);
       
       // Calculate bounding box of the model
       const bbox = calculateBoundingBox(modelClone);
@@ -103,12 +106,10 @@ export const BuildingModel = ({ modelPath = DEFAULT_MODEL_PATH }: BuildingModelP
       camera.lookAt(0, scaledSize.y / 2, 0); // Look at the middle of the building
       
       // Update orbit controls target
-      if (controls && typeof controls === 'object') {
-        const orbitControls = controls as any;
-        if (orbitControls.target) {
-          // Set orbit controls target to the middle of the building
-          orbitControls.target.set(0, scaledSize.y / 2, 0);
-        }
+      const orbitControls = controls as OrbitControls | undefined;
+      if (orbitControls?.target) {
+        // Set orbit controls target to the middle of the building
+        orbitControls.target.set(0, scaledSize.y / 2, 0);
       }
       
       // Mark the building as loaded in the store
@@ -118,9 +119,9 @@ export const BuildingModel = ({ modelPath = DEFAULT_MODEL_PATH }: BuildingModelP
     
     // Clean up function
     return () => {
-      if (group.current) {
-        while (group.current.children.length > 0) {
-          group.current.remove(group.current.children[0]);
+      if (groupInstance) {
+        while (groupInstance.children.length > 0) {
+          groupInstance.remove(groupInstance.children[0]);
         }
       }
     };

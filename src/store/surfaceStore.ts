@@ -2,20 +2,24 @@ import { create } from 'zustand';
 import * as THREE from 'three';
 
 // Define the types for our surface store
+export type SurfaceType = 'wall' | 'ceiling' | 'floor' | 'unknown';
+
+export interface SurfaceHit {
+  position: THREE.Vector3;
+  normal: THREE.Vector3;
+  surfaceType: SurfaceType;
+  distance: number;
+  object: THREE.Object3D;
+  rotation: THREE.Euler;
+}
+
 interface SurfaceState {
-  currentHit: {
-    position: THREE.Vector3;
-    normal: THREE.Vector3;
-    surfaceType: string;
-    distance: number;
-    object: THREE.Object3D;
-    rotation: THREE.Euler;
-  } | null;
+  currentHit: SurfaceHit | null;
   isDragging: boolean;
-  draggedFixtureData: any;
-  setCurrentHit: (hit: any) => void;
+  draggedFixtureData: unknown;
+  setCurrentHit: (hit: SurfaceHit | null) => void;
   setIsDragging: (isDragging: boolean) => void;
-  setDraggedFixtureData: (data: any) => void;
+  setDraggedFixtureData: (data: unknown) => void;
   clearDragState: () => void;
 }
 

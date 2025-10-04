@@ -1,4 +1,4 @@
-import { Canvas, useThree, useFrame } from '@react-three/fiber';
+import { Canvas, useThree, useFrame, type ThreeEvent } from '@react-three/fiber';
 import { OrbitControls, Stats, Environment } from '@react-three/drei';
 import { Suspense, useEffect, useState, useRef, useCallback } from 'react';
 import * as THREE from 'three';
@@ -20,7 +20,7 @@ type SceneProps = {
 const Scene = ({ showStats = true, environmentPreset = 'sunset' }: SceneProps) => {
   const [isWebGLAvailable, setIsWebGLAvailable] = useState(true);
   const canvasRef = useRef<HTMLDivElement>(null);
-  const orbitControlsRef = useRef<any>(null);
+  const orbitControlsRef = useRef<OrbitControls | null>(null);
   const addFixture = useSceneStore(state => state.addFixture);
   const selectedFixtureId = useSceneStore(state => state.selectedFixtureId);
   const selectFixture = useSceneStore(state => state.selectFixture);
@@ -102,12 +102,12 @@ const Scene = ({ showStats = true, environmentPreset = 'sunset' }: SceneProps) =
   }, []);
   
   // Handle background click to deselect fixtures
-  const handleBackgroundClick = (e: any) => {
+  const handleBackgroundClick = (event: ThreeEvent<MouseEvent>) => {
     // Skip if we're in duplication mode
     if (isDuplicating) return;
     
     // Directly deselect if we click on the canvas (not a mesh)
-    if (!e.object || e.object.type === 'Scene' || e.object.type === 'Mesh' && !e.object.userData?.type) {
+    if (!event.object || event.object.type === 'Scene' || event.object.type === 'Mesh' && !event.object.userData?.type) {
       // We've clicked directly on the background or a non-fixture object
       selectFixture(null);
     }

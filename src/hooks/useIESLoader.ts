@@ -163,8 +163,8 @@ function calculateLightAngles(iesData: IESData): { beamAngle: number, fieldAngle
  */
 function createFallbackIESData(profilePath: string): IESData {
   // Default values
-  let totalLumens = 1000;
-  let maxCandela = 2000;
+  const totalLumens = 1000;
+  const maxCandela = 2000;
   let beamAngle = Math.PI / 6; // 30 degrees
   let fieldAngle = Math.PI / 4; // 45 degrees
   

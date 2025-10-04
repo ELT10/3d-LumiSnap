@@ -12,11 +12,15 @@ const COLOR_TEMPERATURES = {
   DAYLIGHT: 6500,
 };
 
+const DEFAULT_TEMPERATURE = COLOR_TEMPERATURES.NEUTRAL;
+
 // Helper function to convert Kelvin to RGB color
 function kelvinToRGB(kelvin: number): { r: number; g: number; b: number } {
   // Temperature to RGB conversion algorithm
-  let temperature = kelvin / 100;
-  let r, g, b;
+  const temperature = kelvin / 100;
+  let r;
+  let g;
+  let b;
   
   if (temperature <= 66) {
     r = 255;
@@ -44,7 +48,7 @@ export const FixturePropertiesPanel: React.FC = () => {
   
   // Local state for UI values
   const [intensity, setIntensity] = useState(1.0);
-  const [temperature, setTemperature] = useState(4000);
+  const [temperature, setTemperature] = useState<number>(DEFAULT_TEMPERATURE);
   // Media facade specific state
   const [mediaOpacity, setMediaOpacity] = useState(0.8);
   const [panelSize, setPanelSize] = useState(0.05);
@@ -59,7 +63,7 @@ export const FixturePropertiesPanel: React.FC = () => {
       setIntensity(selectedFixture.intensity);
       // We'll estimate temperature based on the fixture's color
       // This is simplified - a real implementation would need color-to-temp conversion
-      setTemperature(4000); // Default neutral temperature
+      setTemperature(DEFAULT_TEMPERATURE);
       
       // Update media facade specific properties if available
       if (selectedFixture.mediaOpacity !== undefined) {
@@ -89,11 +93,18 @@ export const FixturePropertiesPanel: React.FC = () => {
   };
   
   const handleTemperatureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTemp = parseInt(e.target.value);
+    const newTemp = parseInt(e.target.value, 10);
     setTemperature(newTemp);
     
     // Convert temperature to RGB and update fixture color
     const { r, g, b } = kelvinToRGB(newTemp);
+    const newColor = new THREE.Color(r, g, b);
+    updateFixture(selectedFixtureId!, { color: newColor });
+  };
+
+  const handlePresetTemperature = (preset: number) => {
+    setTemperature(preset);
+    const { r, g, b } = kelvinToRGB(preset);
     const newColor = new THREE.Color(r, g, b);
     updateFixture(selectedFixtureId!, { color: newColor });
   };
@@ -183,16 +194,16 @@ export const FixturePropertiesPanel: React.FC = () => {
           </div>
           
           <div className="temperature-presets">
-            <button onClick={() => handleTemperatureChange({ target: { value: String(COLOR_TEMPERATURES.CANDLE) } } as any)}>
+            <button onClick={() => handlePresetTemperature(COLOR_TEMPERATURES.CANDLE)}>
               Candle
             </button>
-            <button onClick={() => handleTemperatureChange({ target: { value: String(COLOR_TEMPERATURES.WARM) } } as any)}>
+            <button onClick={() => handlePresetTemperature(COLOR_TEMPERATURES.WARM)}>
               Warm
             </button>
-            <button onClick={() => handleTemperatureChange({ target: { value: String(COLOR_TEMPERATURES.NEUTRAL) } } as any)}>
+            <button onClick={() => handlePresetTemperature(COLOR_TEMPERATURES.NEUTRAL)}>
               Neutral
             </button>
-            <button onClick={() => handleTemperatureChange({ target: { value: String(COLOR_TEMPERATURES.DAYLIGHT) } } as any)}>
+            <button onClick={() => handlePresetTemperature(COLOR_TEMPERATURES.DAYLIGHT)}>
               Daylight
             </button>
           </div>

@@ -4,6 +4,20 @@ import { useSceneStore } from '../store/sceneStore';
 /**
  * Handles the fixture copy-paste process
  */
+export interface DuplicationSurfaceHit {
+  position: THREE.Vector3;
+  normal: THREE.Vector3;
+  surfaceType: 'wall' | 'ceiling' | 'floor' | 'unknown';
+  rotation: THREE.Euler;
+}
+
+export interface FixtureTransform {
+  id: string;
+  position: THREE.Vector3;
+  rotation: THREE.Euler;
+  scale: THREE.Vector3;
+}
+
 export class DuplicationManager {
   private static instance: DuplicationManager;
   private raycaster: THREE.Raycaster;
@@ -12,20 +26,10 @@ export class DuplicationManager {
   private mousePosition: THREE.Vector2;
   private previewPosition: THREE.Vector3;
   private isPreviewing: boolean = false;
-  private currentSurfaceHit: {
-    position: THREE.Vector3,
-    normal: THREE.Vector3,
-    surfaceType: string,
-    rotation: THREE.Euler
-  } | null = null;
+  private currentSurfaceHit: DuplicationSurfaceHit | null = null;
   
   // Store complete transform of original fixture
-  private originalFixture: {
-    id: string,
-    position: THREE.Vector3,
-    rotation: THREE.Euler,
-    scale: THREE.Vector3
-  } | null = null;
+  private originalFixture: FixtureTransform | null = null;
   
   private constructor() {
     this.raycaster = new THREE.Raycaster();
@@ -157,14 +161,14 @@ export class DuplicationManager {
   /**
    * Get current surface hit information
    */
-  public getCurrentSurfaceHit() {
+  public getCurrentSurfaceHit(): DuplicationSurfaceHit | null {
     return this.currentSurfaceHit;
   }
   
   /**
    * Get original fixture transform
    */
-  public getOriginalFixture() {
+  public getOriginalFixture(): FixtureTransform | null {
     return this.originalFixture;
   }
   

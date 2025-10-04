@@ -150,9 +150,8 @@ export const getSavedProjects = (): { name: string; date: string }[] => {
             name: data.name,
             date: data.date
           });
-        } catch (e) {
-          // Skip invalid entries
-          console.warn('Invalid project data in localStorage:', key);
+        } catch (error) {
+          console.warn('Invalid project data in localStorage:', key, error);
         }
       }
     }

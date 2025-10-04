@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useSceneStore } from '../store/sceneStore';
-import { DuplicationManager } from '../utils/duplicationManager';
+import { DuplicationManager, FixtureTransform, DuplicationSurfaceHit } from '../utils/duplicationManager';
 import DuplicationRayIndicator from './DuplicationRayIndicator';
 
 /**
@@ -14,21 +14,21 @@ const DuplicationPreview: React.FC = () => {
   const copiedFixtureId = useSceneStore(state => state.copiedFixtureId);
   const lightFixtures = useSceneStore(state => state.lightFixtures);
   const previewRef = useRef<THREE.Group>(null);
-  const duplicationManager = DuplicationManager.getInstance();
+  const duplicationManager = useMemo(() => DuplicationManager.getInstance(), []);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [originalTransform, setOriginalTransform] = useState<any>(null);
+  const [originalTransform, setOriginalTransform] = useState<FixtureTransform | null>(null);
   const [rayInfo, setRayInfo] = useState<{
-    endPosition: THREE.Vector3,
-    normal: THREE.Vector3,
-    surfaceType: string
+    endPosition: THREE.Vector3;
+    normal: THREE.Vector3;
+    surfaceType: DuplicationSurfaceHit['surfaceType'];
   } | null>(null);
   
   // Track mouse position globally
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
+    const handleMouseMove = (event: MouseEvent) => {
+      setMousePosition({ x: event.clientX, y: event.clientY });
     };
-    
+
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
@@ -37,8 +37,8 @@ const DuplicationPreview: React.FC = () => {
   useEffect(() => {
     duplicationManager.setCamera(camera);
     duplicationManager.setScene(scene);
-    console.log("Duplication preview: Camera and scene set");
-  }, [camera, scene]);
+    console.log('Duplication preview: Camera and scene set');
+  }, [camera, scene, duplicationManager]);
   
   // Store original fixture transform when starting duplication
   useEffect(() => {
@@ -46,16 +46,16 @@ const DuplicationPreview: React.FC = () => {
       const originalFixture = duplicationManager.getOriginalFixture();
       if (originalFixture) {
         setOriginalTransform(originalFixture);
-        console.log("Using original transform:", originalFixture);
+        console.log('Using original transform:', originalFixture);
       }
     }
-  }, [isDuplicating, copiedFixtureId]);
+  }, [isDuplicating, copiedFixtureId, duplicationManager]);
   
   // Clone the copied fixture as a preview when duplication starts
   useEffect(() => {
     if (!isDuplicating || !copiedFixtureId || !previewRef.current) return;
     
-    console.log("Paste preview active, creating preview for fixture:", copiedFixtureId);
+    console.log('Paste preview active, creating preview for fixture:', copiedFixtureId);
     
     // Find the original fixture
     const fixture = lightFixtures.find(f => f.id === copiedFixtureId);
@@ -86,15 +86,16 @@ const DuplicationPreview: React.FC = () => {
     
     // Clone each fixture object
     for (const object of fixtureObjects) {
-      console.log("Cloning fixture object:", object);
+      console.log('Cloning fixture object:', object);
       
       // Clone the object
       const clone = object.clone();
       
       // Apply semi-transparent material for preview
-      clone.traverse((child: any) => {
-        // Skip non-mesh objects
-        if (!child.isMesh) return;
+      clone.traverse((child) => {
+        if (!(child instanceof THREE.Mesh)) {
+          return;
+        }
         
         try {
           // Handle array of materials
@@ -136,7 +137,7 @@ const DuplicationPreview: React.FC = () => {
             child.material = newMat;
           }
         } catch (error) {
-          console.error("Error applying transparent material:", error);
+          console.error('Error applying transparent material:', error);
         }
       });
       
